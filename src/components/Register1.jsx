@@ -81,9 +81,10 @@ function Register1() {
                         </svg>
                     </Link>
                 </div>
+                <p class="mb-3 text-center text-sm font-medium text-gray-900 dark:text-gray-300" >¿Ya tienes una cuenta? <Link to="/IniciarSesion" class="cursor-pointer ml-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500" > Inicia sesión </Link> </p>
             </form>
-            {/* <p id="outlined_success_help" class="mt-2 text-xs text-green-600 dark:text-green-400"><span class="font-medium">Well done!</span> Some success message.</p>     */}
 
+            {/* <p id="outlined_success_help" class="mt-2 text-xs text-green-600 dark:text-green-400"><span class="font-medium">Well done!</span> Some success message.</p>     */}
         </div>
     )
 }

@@ -11,6 +11,8 @@ import Register2 from '../components/Register2';
 import Verificaction3 from '../components/Verification3';
 import Confirm4 from '../components/Confirm4';
 
+import LoginPage from '../pages/LoginPage';
+
 function Routing() {
   return (
 
@@ -27,6 +29,7 @@ function Routing() {
             <Route  path='/verificarCorreo' element={<Verificaction3 />}/>
             <Route  path='/confirmarRegistro' element={<Confirm4 />}/>
 
+            <Route  path='/IniciarSesion' element={<LoginPage />}/>
             {/* Rutas protegidas */}
             {/* <Route path="/" element={<PrivateRoute element={<LandingPage />} />}/> */}
 

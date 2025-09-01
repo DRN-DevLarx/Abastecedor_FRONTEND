@@ -48,8 +48,6 @@ function Verification3() {
                     </li>
                 </ol>
 
-                {/* Telefono */}
-
                 <div>
                     <div class=" w-[100%] flex justify-center mb-2 space-x-2 rtl:space-x-reverse">
                         <div>
@@ -78,7 +76,7 @@ function Verification3() {
                         </div>
                     </div>
 
-                    <p id="helper-text-explanation" class="w-[70%] mx-auto text-center mb-10 text-sm text-gray-500 dark:text-gray-400">Por favor, introduzca el código de 6 dígitos que le enviamos por correo electrónico..</p>
+                    <p id="helper-text-explanation" class="w-[70%] mx-auto text-center mb-3 text-sm text-gray-500 dark:text-gray-400">Por favor, introduzca el código de 6 dígitos que le enviamos por correo electrónico..</p>
                 </div>
 
 
@@ -97,6 +95,8 @@ function Verification3() {
                         </svg>
                     </Link>
                 </div>
+                <p class="mb-3 text-center text-sm font-medium text-gray-900 dark:text-gray-300" >¿Ya tienes una cuenta? <Link to="/IniciarSesion" class="cursor-pointer ml-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500" > Inicia sesión </Link> </p>
+                
             </form>
             {/* <p id="outlined_success_help" class="mt-2 text-xs text-green-600 dark:text-green-400"><span class="font-medium">Well done!</span> Some success message.</p>     */}
 
