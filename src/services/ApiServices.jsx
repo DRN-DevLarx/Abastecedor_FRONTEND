@@ -34,7 +34,7 @@ async function PostData(endpoint, body) {
             body: JSON.stringify(body)
         });
         if (!response.ok) {
-            throw new Error('Error al crear ' + endpoint);
+            throw new Error('Error ' + endpoint);
         }
         const data = await response.json();
         return data;
