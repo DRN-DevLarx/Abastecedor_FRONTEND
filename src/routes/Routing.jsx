@@ -30,6 +30,7 @@ function Routing() {
             <Route  path='/confirmarRegistro' element={<Confirm4 />}/>
 
             <Route  path='/IniciarSesion' element={<LoginPage />}/>
+            
             {/* Rutas protegidas */}
             {/* <Route path="/" element={<PrivateRoute element={<LandingPage />} />}/> */}
 
