@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
+import Loader from './Loader'
 import {PostData} from '../services/ApiServices'
 
 function Register2() {
@@ -8,6 +9,10 @@ function Register2() {
     const [email, setEmail] = useState("")
     const [messages, setMessages] = useState({})
     const [modalView, setModalView] = useState(false)
+    const [EmailAvailable, setEmailAvailable] = useState(null)
+    
+    // const [LoaderMessage, setLoaderMessage] = useState()
+    const [ShowLoader, setShowLoader] = useState(false)
 
     //Valores del componente anterior
     const { state } = useLocation();
@@ -16,18 +21,35 @@ function Register2() {
     // Validaciones
     const validateField = (field, value) => {
         let message = ""
-        if (!value) {
-            message = "Campo obligatorio"
-        } else {
-            if (field === "phone") {
+        
+        if (field === "phone") {
+            let optional = false;
+
+            if (value.length == 0) {
+                optional = true;
+            }
+
+            if (optional == false) {
                 if (!/^\d+$/.test(value)) message = "Solo se permiten números"
                 else if (value.length < 8) message = "Debe tener al menos 8 dígitos"
             }
-            if (field === "email") {
-                const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                if (!regexEmail.test(value)) message = "Correo inválido"
+        }
+
+        if (field === "email") {
+            const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!regexEmail.test(value)) message = "Correo no valido"
+
+            else if (!value) message = "Campo obligatorio"
+
+            // ========================================= Cambiar validacion =========================================
+            else if (value.toLowerCase() === "lucrequesada0709@gmail.com") {
+                // message = "El correo electrónico ya está registrado";
+                setEmailAvailable(false);
+            } else {
+                setEmailAvailable(true);
             }
         }
+        
         return message
     }
 
@@ -45,33 +67,42 @@ function Register2() {
         }
         setMessages(newMessages)
 
-        if (!newMessages.phone && !newMessages.email && !newMessages.address) {
+        if (!newMessages.phone && !newMessages.email)  {
             
-            RequestCode()
-            // navigate("/verificarCorreo")
-        } else {
-            setModalView(true)
+            if (EmailAvailable) {
+                RequestCode()            
+            } else {
+                setModalView(true)
+            }
         }
     }
 
     // Solicitar código de verificación
     async function RequestCode() {
-        console.log(email);
         
+        setShowLoader(true)
         const endpoint = 'enviarCodigo/';
         const response = await PostData(endpoint, {
             correo: email,
             nombre: Name,
         });
 
-        if (response.Ok) {
-            console.log("Codigo enviado");
-            // navigate("/verificarCorreo")            
+        if (response) {
+            navigate("/verificarCorreo", { state: { Name, LastName, Username, phone, email }});            
+        } else {
+            console.error('No se pudo enviar el código de verificación:');
         }
+        setShowLoader(false);
+   
     }
 
     return (
         <div className="flex items-center">
+            
+            {ShowLoader && (
+                <Loader/>
+            )}
+
             <form className="w-[100%] md:mt-4 md:w-[50%] flex flex-col gap-5 mx-auto border border-gray-700 rounded-2xl pb-5 ">
                 {/* Texto explicativo */}
                 <div className="w-[90%] mx-auto mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">             
@@ -118,7 +149,7 @@ function Register2() {
                 {/* Phone */}
                 <div className="relative w-[80%] mx-auto">
                     <input type="text" id="phone" value={phone} onChange={e => handleChange("phone", e.target.value)} className="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 focus:outline-none peer" placeholder=" " />
-                    <label htmlFor="phone" className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-3 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 start-1">Teléfono</label>
+                    <label htmlFor="phone" className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-3 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 start-1">Teléfono (opcional)</label>
                     {messages.phone && <p className="text-red-500 text-[10px]">{messages.phone}</p>}
                 </div>
 
@@ -154,11 +185,19 @@ function Register2() {
                                     <svg className="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
                                     </svg>
-                                    <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Por favor, verifica los campos e intenta nuevamente.</h3>
-                                    <button onClick={() => setModalView(false)} className="text-white border-1 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-red-300  font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
-                                        Verificar
-                                    </button>
-                                </div>
+                                    <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">El correo eletrónico ya está registrado.</h3>
+                                    
+
+                                    <div className="transform-view flex justify-center gap-5 w-[80%] mx-auto">
+
+                                        <button onClick={() => setModalView(false)} className="text-white border hover:bg-blue-800 focus:ring-1 focus:outline-none focus:ring-red-300  font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
+                                            Cambiar
+                                        </button>
+
+                                        <button type='button'  className="text-white flex items-center border border-gray-800 hover:bg-gray-900 font-medium rounded-lg text-sm px-5 py-2.5 dark:border-gray-600 dark:bg-blue-600 dark:hover:bg-blue-700">
+                                            Iniciar sesión
+                                        </button>
+                                    </div>                                </div>
                             </div>
                         </div>
                     </div>

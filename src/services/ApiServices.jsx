@@ -33,12 +33,13 @@ async function PostData(endpoint, body) {
             },
             body: JSON.stringify(body)
         });
-        if (!response.ok) {
-            throw new Error('Error ' + endpoint);
-        }
-        const data = await response.json();
-        return data;
 
+        
+        const data = await response.json();
+        return {
+            status: response.status, // <-- aquí mandamos el estado HTTP
+            data: data                      // <-- aquí mandamos el contenido JSON
+        };
     } catch (error) {
         console.error('Error:', endpoint, error);
         throw error;

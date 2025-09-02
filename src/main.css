@@ -1,0 +1,51 @@
+
+@import "tailwindcss";
+@plugin "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
+@plugin "flowbite/plugin";
+@source "../node_modules/flowbite";
+
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+  /* Estilos para la barra de scroll en su conjunto */
+  .scrollbar-custom::-webkit-scrollbar {
+      width: 10px; /* Ancho de la barra de scroll */
+  }
+
+  /* Estilos para la pista (track) de la barra de scroll */
+  .scrollbar-custom::-webkit-scrollbar-track {
+      background-color: transparent; /* Color de fondo de la pista */
+      border-radius: 10px;
+  }
+
+  /* Estilos para el pulgar (thumb) de la barra de scroll */
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+      background-color: #a1a1aad5; /* Color del pulgar */
+  }
+
+  /* Estilos al pasar el ratón sobre el pulgar */
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+      background-color: #71717a;
+  }
+
+
+/* Eliminar autofill azul de Chrome */
+input:-webkit-autofill {
+  -webkit-text-fill-color: currentColor;
+}
+
+/* Chrome, Edge, Opera y Safari */
+input:-webkit-autofill {
+  -webkit-text-fill-color: #fff; /* color del texto */
+  transition: background-color 5000s ease-in-out 0s; /* evita el parpadeo */
+}
+
+/* Si quieres personalizar también cuando está en hover o focus */
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+}

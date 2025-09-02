@@ -9,7 +9,6 @@ function Register1() {
     const [Username, setUsername] = useState("");
     const [messages, setMessages] = useState({});
     const [userAvailable, setUserAvailable] = useState(null);
-    const [ModalView, setModalView] = useState(false);
     
     // Reglas de validación
     const regexName = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/; // Solo letras
@@ -49,9 +48,11 @@ function Register1() {
                     message = "Solo letras, números y . _ -";
                 } else if (forbiddenWords.includes(value.toLowerCase())) {
                     message = "El usuario incluye una palabra prohibida";
+                } else if (value.toLowerCase() === "usuario1") {
+                    message = "Usuario no disponible ❌";
+                    setUserAvailable(false);
                 } else {
-                    // Simulación de disponibilidad
-                    setUserAvailable(value.toLowerCase() !== "usuario1");
+                    setUserAvailable(true);
                 }
             }
         }
@@ -80,8 +81,6 @@ function Register1() {
         if (!newMessages.name && !newMessages.lastName && !newMessages.username) {
             navigate("/registroContacto", { state: { Name, LastName, Username } });
 
-        } else {
-            setModalView(true);
         }
     };
 
@@ -142,7 +141,7 @@ function Register1() {
 
                 {/* Apellido */}
                 <div className="relative w-[80%] mx-auto">
-                    <input onChange={(e) => handleChange("lastName", e.target.value)} value={LastName} type="text" id="lastname" className="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                    <input onChange={(e) => handleChange("lastName", e.target.value)} autoComplete='off' value={LastName} type="text" id="lastname" className="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
                     <label htmlFor="lastname" className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-3 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 start-1">Apellido</label>
                     
                     {messages.lastName && <p className="text-red-500 text-[10px]">{messages.lastName}</p>}
@@ -150,14 +149,18 @@ function Register1() {
 
                 {/* Usuario */}
                 <div className="relative w-[80%] mx-auto">
-                    <input onChange={(e) => handleChange("username", e.target.value)} value={Username} type="text" id="username" className="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
+                    <input onChange={(e) => handleChange("username", e.target.value)} autoComplete='off' value={Username} type="text" id="username" className="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border-1 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer" placeholder=" " />
                     <label htmlFor="username" className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-3 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 start-1">Usuario</label>
                     
-                    {messages.username && <p className="text-red-500 text-[10px]">{messages.username}</p>}
-                    
-                    {userAvailable !== null && !messages.username && (
-                        userAvailable ? <p className="text-green-500 text-[10px]">Usuario disponible ✔</p> : <p className="text-red-500 text-sm">Usuario no disponible ✖</p>
-                    )}
+                    {messages.username ? (
+                        <p className="text-red-500 text-[10px]">{messages.username}</p>
+                    ) : userAvailable !== null ? (
+                        userAvailable ? (
+                            <p className="text-green-500 text-[10px]">Usuario disponible ✔</p>
+                        ) : (
+                            <p className="text-red-500 text-[10px]">Usuario no disponible ✖</p>
+                        )
+                    ) : null}
                 </div>
 
                 {/* Botones */}
@@ -179,32 +182,6 @@ function Register1() {
 
                 <p className="mb-3 text-center text-sm font-medium text-gray-900 dark:text-gray-300">¿Ya tienes una cuenta? <Link to="/IniciarSesion" className="cursor-pointer ml-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500"> Inicia sesión </Link></p>
             </form>
-
-            {ModalView && (
-                <div className='fixed top-0 z-999 w-full h-full flex justify-center '>
-                    <div className="m-auto overflow-y-auto overflow-x-hidden z-50">
-                        <div className="relative p-4 w-full max-w-md max-h-full">
-                            <div className="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
-                                <button type="button" onClick={() => setModalView(false)} className="absolute top-3 end-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="popup-modal">
-                                    <svg className="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
-                                    </svg>
-                                    <span className="sr-only">Close modal</span>
-                                </button>
-                                <div className="p-4 md:p-5 text-center">
-                                    <svg className="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-                                    </svg>
-                                    <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">Por favor, verifica los campos e intenta nuevamente.</h3>
-                                    <button onClick={() => setModalView(false)} className="text-white border-1 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-red-300  font-medium rounded-lg text-sm inline-flex items-center px-5 py-2.5 text-center">
-                                        Verificar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
         </div>
     )
