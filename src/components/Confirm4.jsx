@@ -1,10 +1,15 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useState } from 'react';
+import Loader from './Loader'
+import { GetData, PostData } from '../services/ApiServices';
+import Swal from 'sweetalert2'
 
 function Confirm4() {
 
     const navigate = useNavigate()
+    const emailForVerification = sessionStorage.getItem('emailForVerification') || '';
+    const [TemporaryData, setTemporaryData] = useState({})
+
     const [Password, setPassword] = useState("")
     const [ConfirmPassword, setConfirmPassword] = useState("")
     const [Message, setMessage] = useState("")
@@ -14,16 +19,30 @@ function Confirm4() {
     const [Validation2, setValidation2] = useState("❌")
     const [Validation3, setValidation3] = useState("❌")
     const [Validation4, setValidation4] = useState("❌")    
-    const [SecureRegister, setSecureRegister] = useState(false)    
 
-    const [ViewModal, setViewModal] = useState(false)
+    const [ShowModal, setShowModal] = useState(false)
+    const [ShowLoader, setShowLoader] = useState(false)
+    
     const [AcceptedTermsCheked, setAcceptedTermsCheked] = useState(false)
     const [MessageTerms, setMessageTerms] = useState("")
 
-    //Valores del componente anterior
-    const { state } = useLocation();
-    const { Name, LastName, Username, phone, email } = state || {};
-    
+    useEffect(() => {
+        const fetchData = async () => {
+            const TemporaryDataGet = await GetData('registroTemporal/');
+
+            if (TemporaryDataGet) {
+                const item = TemporaryDataGet.find((item) => item.email === emailForVerification);
+                
+                if (item) {
+                    setTemporaryData(item);
+                }  else {
+                    navigate("/registro")
+                }
+            }
+        };
+
+        fetchData();
+    }, []);    
 
     //Validaciones de contraseña
     const ValidatePassword = (e) => {
@@ -62,66 +81,143 @@ function Confirm4() {
         } else if ([Validation1, Validation2, Validation3, Validation4].every(v => v === "✅")) {
             setMessage(""); // Limpiar mensaje si todo está bien
             setMessage2(""); // Limpiar mensaje si todo está bien
-            setSecureRegister(true)
         } 
     };
 
     const AcceptedTerms = (condition) => {
         if (condition == "Accept") {
-            setViewModal(false)
+            setShowModal(false)
             setAcceptedTermsCheked(true)
         } 
         else if (condition == "Decline"){
-            setViewModal(false)
+            setShowModal(false)
             setAcceptedTermsCheked(false)
         } else {
             setAcceptedTermsCheked(prevState => !prevState)
         }
     }
 
-    // if (AcceptedTermsCheked) {
-    //     setMessageTerms("")
-    // }
-
     // Funcion de registrar usuario
-    const PostRegister = () => {
-    let valid = true;
+    async function PostRegister() {
+      
+        let valid = true;
 
-    // Validar contraseña
-    if (Password === "") {
-        setMessage("Campo obligatorio");
-        valid = false;
-    } else {
-        setMessage("");
-    }
+        // Validar contraseña
+        if (Password === "") {
+            setMessage("Campo obligatorio");
+            valid = false;
+        } else {
+            setMessage("");
+        }
 
-    // Validar confirmación
-    if (ConfirmPassword === "") {
-        setMessage2("Campo obligatorio");
-        valid = false;
-    } else {
-        setMessage2("");
-    }
+        // Validar confirmación
+        if (ConfirmPassword === "") {
+            setMessage2("Campo obligatorio");
+            valid = false;
+        } else {
+            setMessage2("");
+        }
 
-    // Validar términos
-    if (!AcceptedTermsCheked) {
-        setMessageTerms("Casilla faltante");
-        valid = false;
-    } else {
-        setMessageTerms("");
-    }
+        // Validar términos
+        if (!AcceptedTermsCheked) {
+            setMessageTerms("Casilla faltante");
+            valid = false;
+        } else {
+            setMessageTerms("");
+        }
 
-    // Si no hay errores => registrar
-    if (valid && Message === "" && Message2 === "" && MessageTerms === "") {
-        console.log("Registro ✅");
-        // Aquí va tu lógica de registro (fetch/axios/etc.)
-    }
-};
+        // Si no hay errores => registrar
+        if (valid && Message === "" && Message2 === "" && MessageTerms === "") {
+
+            // Registro de usuarios
+            setShowLoader(true)
+            const endpoint = 'users/';
+            const endpointInfo = 'informacionUsuarios/';
+            const endpointGroup = 'asignarGrupo/';          
+
+            const response = await PostData(endpoint, {
+                password: Password,
+                username: TemporaryData.username,
+                first_name: TemporaryData.nombre,
+                last_name: TemporaryData.apellido,
+                email: TemporaryData.email
+            });
+                        
+            if(response.status === 200 || response.status === 201) {                
+
+                const responseUsersInfo = await PostData(endpointInfo, {
+                    user: response.data.id,
+                    telefono: TemporaryData.phone,
+                    direccion: ""
+                });
+                                
+                if (responseUsersInfo.status === 200 || responseUsersInfo.status === 201) {
+                    
+                    const responseUserGroup = await PostData(endpointGroup, {
+                        user_id: response.data.id,
+                        group_id: 2,
+                    });
+                    
+                    setShowLoader(false)
+
+                    if(responseUserGroup.status === 200 || responseUserGroup.status === 201) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Usuario registrado correctamente.',
+                            text: 'Serás redirigido al login',
+                            timer: 4000,
+                            showConfirmButton: false,
+                            background: '#233876aa',
+                            color: 'white',
+                            willClose: () => {
+                                navigate('/IniciarSesion')
+                            }
+                        })
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Ha ocurrido un error',
+                            text: 'Si el error persiste, por favor contacte a soporte.',
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: '#3B82F6',
+                            background: '#233876aa',
+                            color: 'white'
+                        })
+                    }
+
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Ha ocurrido un error',
+                        text: 'Si el error persiste, por favor contacte a soporte.',
+                        confirmButtonText: 'Aceptar',
+                        confirmButtonColor: '#3B82F6',
+                        background: '#233876aa',
+                        color: 'white'
+                    })
+                }
+
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Ha ocurrido un error',
+                    text: 'Si el error persiste, por favor contacte a soporte.',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#3B82F6',
+                    background: '#233876aa',
+                    color: 'white'
+                })
+            }
+        }
+    };
 
 
     return (
         <div className="flex items-center">
-
+            {ShowLoader && (
+                <Loader/>
+            )}
             <form className="w-[100%] md:mt-4 md:w-[50%] flex flex-col gap-5 mx-auto border border-gray-700 rounded-2xl pb-5 ">
                 {/* Texto explicativo */}
                 <div className="w-[90%] mx-auto mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">             
@@ -242,7 +338,7 @@ function Confirm4() {
                     Acepto los 
                     </label>
 
-                    <p onClick={() => setViewModal(true)} className="cursor-pointer ml-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">términos y condiciones</p>.
+                    <p onClick={() => setShowModal(true)} className="cursor-pointer ml-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">términos y condiciones</p>.
                     
                 </div>
                 {MessageTerms && <p className=" text-red-500 text-[10px] w-[80%] -mt-5 mx-auto ">{MessageTerms}</p>}
@@ -268,14 +364,14 @@ function Confirm4() {
             
             {/* <p id="outlined_success_help" className="mt-2 text-xs text-green-600 dark:text-green-400"><span className="font-medium">Well done!</span> Some success message.</p>     */}
 
-            {ViewModal && (
+            {ShowModal && (
                 <div className='absolute top-0 w-full flex justify-center items-center z-999'>
                     <div className="max-w-md md:max-w-2xl max-h-full " >
                         <div className="relative bg-white rounded-lg shadow-lg dark:bg-gray-700 overflow-hidden">
                         {/* Header */}
                         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-600">
                             <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-white">Términos y condiciones</h3>
-                            <button type="button" className="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg p-1 md:p-2 inline-flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => setViewModal(false)}>
+                            <button type="button" className="text-gray-400 hover:bg-gray-200 hover:text-gray-900 rounded-lg p-1 md:p-2 inline-flex items-center justify-center dark:hover:bg-gray-600 dark:hover:text-white" onClick={() => setShowModal(false)}>
                             <svg className="w-3 h-3 md:w-4 md:h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
                                 <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
                             </svg>

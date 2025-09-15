@@ -1,10 +1,13 @@
-import React, { useState } from 'react'
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate, useLocation} from 'react-router-dom'
 import Loader from './Loader'
-import {PostData} from '../services/ApiServices'
+import {GetData, PostData} from '../services/ApiServices'
+import Swal from "sweetalert2";
 
 function Register2() {
     const navigate = useNavigate()
+    const [UserEmails, setUserEmails] = useState("");
+
     const [phone, setPhone] = useState("")
     const [email, setEmail] = useState("")
     const [messages, setMessages] = useState({})
@@ -16,8 +19,27 @@ function Register2() {
 
     //Valores del componente anterior
     const { state } = useLocation();
-    const { Name, LastName, Username } = state || {};
-    
+    const { Name, LastName, Username} = state || {};
+        
+    useEffect(() => {
+        const fetchData = async () => {
+
+            const endpoint = 'users/'
+            const UserData = await GetData(endpoint);
+            
+            if (UserData) {
+                const emails = UserData.map((user) => user.email);
+                setUserEmails(emails);
+            }
+
+            if(!Name || !LastName || !Username) {
+                navigate("/registro")
+            }                  
+        };
+
+        fetchData();
+    }, []);
+
     // Validaciones
     const validateField = (field, value) => {
         let message = ""
@@ -42,8 +64,8 @@ function Register2() {
             else if (!value) message = "Campo obligatorio"
 
             // ========================================= Cambiar validacion =========================================
-            else if (value.toLowerCase() === "lucrequesada0709@gmail.com") {
-                // message = "El correo electrónico ya está registrado";
+            else if (UserEmails.includes(value)) {
+                message = "El correo electrónico ya está registrado ❌";
                 setEmailAvailable(false);
             } else {
                 setEmailAvailable(true);
@@ -79,22 +101,59 @@ function Register2() {
 
     // Solicitar código de verificación
     async function RequestCode() {
-        
-        setShowLoader(true)
-        const endpoint = 'enviarCodigo/';
-        const response = await PostData(endpoint, {
-            correo: email,
-            nombre: Name,
-        });
+        setShowLoader(true);
 
-        if (response) {
-            navigate("/verificarCorreo", { state: { Name, LastName, Username, phone, email }});            
-        } else {
-            console.error('No se pudo enviar el código de verificación:');
+        try {
+            const response = await PostData('enviarCodigo/', {
+                correo: email,
+                nombre: Name,       // El backend guardará estos datos en la sesión
+                apellido: LastName,
+                telefono: phone,
+                username: Username
+            });            
+
+            setShowLoader(false);
+
+            if (response.status === 200) {
+                sessionStorage.setItem('emailForVerification', email);
+            
+                navigate('/verificarCorreo');
+                
+            } else if (response.status === 429) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Demasiados intentos',
+                    text: response.data.error || 'Debes esperar antes de reenviar el código.',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#3B82F6',
+                    background: '#233876aa',
+                    color: 'white',
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: response.data.error || 'No se pudo enviar el correo.',
+                    confirmButtonText: 'Aceptar',
+                    confirmButtonColor: '#3B82F6',
+                    background: '#233876aa',
+                    color: 'white',
+                });
+            }
+        } catch (error) {
+            setShowLoader(false);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo conectar con el servidor. Intenta más tarde.',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#3B82F6',
+                background: '#233876aa',
+                color: 'white',
+            });
         }
-        setShowLoader(false);
-   
     }
+
 
     return (
         <div className="flex items-center">
@@ -161,8 +220,7 @@ function Register2() {
                 </div>
 
                 {/* Botones */}
-                <div className="flex justify-between w-[80%] mx-auto">
-                    <Link to={-1} className="text-white flex items-center border border-gray-800 hover:bg-gray-900 font-medium rounded-lg text-sm px-5 py-2.5 dark:border-gray-600 dark:bg-blue-600 dark:hover:bg-blue-700">Volver</Link>
+                <div className="flex justify-center w-[100%]">
                     <button type='button' onClick={isFormValid} className="text-white flex items-center border border-gray-800 hover:bg-gray-900 font-medium rounded-lg text-sm px-5 py-2.5 dark:border-gray-600 dark:bg-blue-600 dark:hover:bg-blue-700">Siguiente</button>
                 </div>
 

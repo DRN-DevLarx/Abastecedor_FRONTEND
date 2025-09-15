@@ -1,9 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEfect, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import Register2 from './Register2';
+import { GetData } from '../services/ApiServices';
 
 function Register1() {
     const navigate = useNavigate()
+
+    const [UserNames, setUserNames] = useState("");
+
     const [Name, setName] = useState("");
     const [LastName, setLastName] = useState("");
     const [Username, setUsername] = useState("");
@@ -14,6 +17,30 @@ function Register1() {
     const regexName = /^[A-Za-zÁÉÍÓÚáéíóúÑñ]+$/; // Solo letras
     const regexUser = /^[A-Za-z0-9._-]+$/; // Letras, números y . _ -
     const forbiddenWords = ["admin", "root", "test"];
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const endpoint = 'users/'
+                const UserData = await GetData(endpoint);
+                
+                if (UserData) {
+
+                    // Extraemos todos los nombres en un arreglo
+                    const names = UserData.map((user) => user.username);
+
+                    // Guardamos los nombres
+                    setUserNames(names);
+
+                }
+            } catch (error) {
+                console.error("Error al obtener los datos:", error);
+            }
+        };
+
+        fetchData();
+    }, []);
+
 
     const validateField = (field, value) => {
         let message = "";
@@ -48,7 +75,7 @@ function Register1() {
                     message = "Solo letras, números y . _ -";
                 } else if (forbiddenWords.includes(value.toLowerCase())) {
                     message = "El usuario incluye una palabra prohibida";
-                } else if (value.toLowerCase() === "usuario1") {
+                } else if (UserNames.includes(value)) {
                     message = "Usuario no disponible ❌";
                     setUserAvailable(false);
                 } else {

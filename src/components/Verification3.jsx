@@ -1,54 +1,234 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import Loader from './Loader'
-import {PostData} from '../services/ApiServices'
+import {GetData, PostData} from '../services/ApiServices'
+import Swal from 'sweetalert2'
 
 function Verification3() {
     
     const navigate = useNavigate()
-    const [Code, setCode] = useState()
+    const emailForVerification = sessionStorage.getItem('emailForVerification') || '';
+    const [TemporaryData, setTemporaryData] = useState({})
+        
+    const [Code, setCode] = useState("")
 
     const [ShowModal, setShowModal] = useState(false)
-    const [LoaderView, setLoaderView] = useState(false)
-
-    //Valores del componente anterior
-    const { state } = useLocation();
-    const { Name, LastName, Username, phone, email } = state || {};
+    const [ShowLoader, setShowLoader] = useState(false)
     
+    // Cooldown para reenviar
+    const [cooldown, setCooldown] = useState(0);
+    const [intervalId, setIntervalId] = useState(null);
+
+
     const handleChange = (value) => {
         if (/^\d*$/.test(value)) {
             setCode(value);
         }
     };
 
+    useEffect(() => {
+        // Fetch inicial de datos
+        const fetchData = async () => {
+            const TemporaryDataGet = await GetData('registroTemporal/');
+
+            if (TemporaryDataGet) {
+                const item = TemporaryDataGet.find((item) => item.email === emailForVerification);
+                
+                if (item) {
+                    setTemporaryData(item);
+                }
+            }
+        };
+
+        fetchData();
+
+        // Manejo del cooldown
+        if (cooldown > 0) {
+            const id = setInterval(() => {
+                setCooldown((prev) => prev - 1);
+            }, 1000);
+
+            setIntervalId(id);
+
+            // limpiar intervalo cuando cooldown cambie o se desmonte
+            return () => clearInterval(id);
+        } else {
+            clearInterval(intervalId);
+            setIntervalId(null);
+        }
+        
+    }, [cooldown, emailForVerification]); 
+
     // Validar código de verificación
     async function ValidateCode() {
-        if (Code.length == 6) {
-            setLoaderView(true)
+        if (Code.length === 6) {
+            setShowLoader(true);
             const endpoint = 'validarCodigo/';
-            const response = await PostData(endpoint, {
-                correo: email,
-                codigo: Code,
-            });
-    
-    
-            if (response.status === 200) {
-                navigate("/confirmarRegistro", { state: { Name, LastName, Username, phone, email }});            
-            } else {
-                setLoaderView(false)
-                setShowModal(true)
+
+            try {
+                const response = await PostData(endpoint, {
+                    correo: TemporaryData.email,
+                    codigo: Code,
+                });
+
+                setShowLoader(false);
+
+                if (response.status === 200) {
+                    // Código correcto
+                    navigate("/confirmarRegistro");
+
+                } else if (response.status === 400) {
+                    // Código incorrecto o expirado
+                    Swal.fire({
+                        icon: "error",
+                        title: "Código no válido",
+                        text: response.data.error || "Verifica e intenta más tarde.",
+                        confirmButtonText: "Verificar",
+                        confirmButtonColor: "#3B82F6",
+                        background: "#233876aa",
+                        color: "white",
+                    });
+
+                } else if (response.status === 500) {
+                    // Error del servidor
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error en el servidor",
+                        text: response.data.error || "Intenta nuevamente más tarde.",
+                        confirmButtonText: "Aceptar",
+                        confirmButtonColor: "#3B82F6",
+                        background: "#233876aa",
+                        color: "white",
+                    });
+
+                } else {
+                    //  Respuesta inesperada
+                    Swal.fire({
+                        icon: "info",
+                        title: "Respuesta inesperada",
+                        text: "Código: " + response.status,
+                        confirmButtonText: "Aceptar",
+                        confirmButtonColor: "#3B82F6",
+                        background: "#233876aa",
+                        color: "white",
+                    });
+                }
+
+            } catch (error) {
+                setShowLoader(false);
+                //  Error de conexión
+                Swal.fire({
+                    icon: "error",
+                    title: "Error de conexión",
+                    text: "No se pudo conectar con el servidor. Intenta más tarde.",
+                    confirmButtonText: "Aceptar",
+                    confirmButtonColor: "#3B82F6",
+                    background: "#233876aa",
+                    color: "white",
+                });
             }
+        } else {
+            // Código incompleto
+            Swal.fire({
+                icon: "warning",
+                title: "Código incompleto",
+                text: "El código debe tener 6 dígitos.",
+                confirmButtonText: "Aceptar",
+                confirmButtonColor: "#3B82F6",
+                background: "#233876aa",
+                color: "white",
+            });
         }
     }
 
-    // Validacion para limitar el reenvio del codigo
-    const ResendCode = () => {
+    async function ResendCode() {
+        if (cooldown > 0) return; // no dejar reenviar si está en cooldown
 
+        setShowLoader(true);
+        const endpoint = "reenviarCodigo/";
+
+        try {
+            const response = await PostData(endpoint, {
+                correo: TemporaryData.email,
+                nombre: TemporaryData.nombre,
+            });
+
+            setShowLoader(false);
+
+            if (response.status === 200) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Código reenviado",
+                    text: response.data.mensaje || "Revisa tu correo 📩",
+                    confirmButtonColor: "#3B82F6",
+                    background: "#233876aa",
+                    color: "white",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+
+                // Iniciar contador regresivo según wait_time
+                setCooldown(response.data.wait_time);
+            
+            } 
+            else if (response.status === 429) {
+                // Cooldown impuesto por el backend
+                setCooldown(response.data.wait_time);
+
+                Swal.fire({
+                    icon: "info",
+                    title: "Demasiados intentos",
+                    text: response.data.error || "Debes esperar antes de reenviar.",
+                    confirmButtonColor: "#3B82F6",
+                    background: "#233876aa",
+                    color: "white",
+                });
+            } 
+            else if (response.status === 400) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Error de validación",
+                    text: response.data.error || "Correo inválido.",
+                    confirmButtonColor: "#3B82F6",
+                    background: "#233876aa",
+                    color: "white",
+                });
+            } else if (response.status === 500) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error del servidor",
+                    text: response.data.error || "Intenta más tarde.",
+                    confirmButtonColor: "#3B82F6",
+                    background: "#233876aa",
+                    color: "white",
+                });
+            } else {
+                Swal.fire({
+                    icon: "info",
+                    title: "Respuesta inesperada",
+                    text: "Código: " + response.status,
+                    confirmButtonColor: "#3B82F6",
+                    background: "#233876aa",
+                    color: "white",
+                });
+            }
+        } catch (error) {
+            setShowLoader(false);
+            Swal.fire({
+                icon: "error",
+                title: "Error de conexión",
+                text: "No se pudo conectar con el servidor. Intenta más tarde.",
+                confirmButtonColor: "#3B82F6",
+                background: "#233876aa",
+                color: "white",
+            });
+        }
     }
+
 
     return (
         <div className="flex items-center">
-            {LoaderView && (
+            {ShowLoader && (
                 <Loader/>
             )}
             <form className="w-[100%] md:mt-4 md:w-[50%] flex flex-col gap-5 mx-auto border border-gray-700 rounded-2xl pb-5 ">
@@ -96,8 +276,18 @@ function Verification3() {
 
                 <div>
                     <p id="helper-text-explanation" className="w-[70%] mx-auto text-center mb-3 text-sm text-gray-500 dark:text-gray-400">
-                        Por favor, introduzca el código de 6 dígitos que le enviamos a {email} 
-                        <Link to="/registroContacto" state={{ Name, LastName, Username }} className='ml-1 text-white hover:underline' >¿Correo incorrecto?</Link> 
+                        Por favor, introduzca el código de 6 dígitos que le enviamos a {emailForVerification} 
+                        <Link 
+                        to="/registroContacto" 
+                        state={{ 
+                            Name: TemporaryData.nombre, 
+                            LastName: TemporaryData.apellido, 
+                            Username: TemporaryData.username 
+                        }} 
+                        className='ml-1 text-white hover:underline'
+                        >
+                        ¿Correo incorrecto?
+                        </Link>
                     </p>
 
                     <div className="w-[100%] flex justify-center mb-2 space-x-2 rtl:space-x-reverse">
@@ -106,14 +296,18 @@ function Verification3() {
                             <input value={Code} onChange={e => handleChange(e.target.value)} type="text" autoComplete='off' inputMode='numeric' pattern="[0-9]*" maxlength="6" data-focus-input-init data-focus-input-next="code-2" id="code-1" className="placeholder:text-3xl block w-50 h-10 py-3  font-bold tracking-widest text-center text-gray-900 bg-white border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder='------' />
                             
                             <div className='text-center'>
-                                <p onClick={ResendCode()} id="helper-text-explanation" className="inline cursor-pointer mx-auto mb-3 text-[10px] hover:underline text-blue-500 dark:text-blue-500">¿No recibistes el código?</p>
+                                {/* <p onClick={() => ResendCode()} id="helper-text-explanation" className="inline cursor-pointer mx-auto mb-3 text-[10px] hover:underline text-blue-500 dark:text-blue-500">¿No recibistes el código?</p> */}
+
+                                <button type='button' onClick={ResendCode} disabled={cooldown > 0} className={`inline cursor-pointer mx-auto my-3 text-[14px] ${ cooldown > 0 ? "text-gray-500 cursor-not-allowed" : "text-blue-600 hover:underline" }`}>
+                                    {cooldown > 0 ? `Reenviar en ${cooldown}s` : "Reenviar código" }
+                                </button>
+
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex justify-center w-[80%] mx-auto">
-                    <Link to={-1} className="text-white flex items-center border border-gray-800 hover:bg-gray-900 font-medium rounded-lg text-sm px-5 py-2.5 dark:border-gray-600 dark:bg-blue-600 dark:hover:bg-blue-700">Volver</Link>
 
                     <button onClick={() => ValidateCode()} type="button" className="text-white flex items-center border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-gray-600  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Siguiente
                         <svg className=" rtl:rotate-0 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
