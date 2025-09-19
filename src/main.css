@@ -49,3 +49,41 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus {
   -webkit-text-fill-color: #fff;
 }
+
+
+.input-group {
+  position: relative;
+  width: 80%;
+  margin: auto;
+}
+
+.input-field {
+  width: 100%;
+  padding: 7px 5px;
+  padding-left: 20px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: transparent;
+  outline: none;
+}
+
+.input-label {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #182f75;
+  padding: 0 4px;
+  color: white;
+  font-size: 16px;
+  pointer-events: none;
+  transition: 0.2s ease all;
+}
+
+/* Cuando el input está en foco o tiene texto */
+.input-field:focus + .input-label,
+.input-field:not(:placeholder-shown) + .input-label {
+  top: 0;
+  font-size: 14px;
+}

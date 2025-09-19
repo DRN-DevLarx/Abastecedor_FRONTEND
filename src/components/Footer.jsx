@@ -1,5 +1,7 @@
 import React from 'react'
 import Logo from '../assets/logo.png'
+import { Link } from 'react-router-dom'
+
 function Footer() {
     return (
         <footer class="bg-white dark:bg-gray-900">
@@ -15,10 +17,10 @@ function Footer() {
                         <h2 class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">Información</h2>
                         <ul class="text-gray-500 dark:text-gray-400 font-medium">
                             <li class="mb-4">
-                                <a href="#" class="hover:underline">Acerca de nosotros</a>
+                                <Link to="/about" class="hover:underline"> Acerca de nosotros</Link>
                             </li>
                             <li>
-                                <a href="#" class="hover:underline"> Ayuda</a>
+                                <Link to="/#" class="hover:underline"> Ayuda</Link>
                             </li>
                         </ul>
                     </div>

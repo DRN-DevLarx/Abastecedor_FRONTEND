@@ -47,46 +47,75 @@ async function PostData(endpoint, body) {
     }
 }
 
-// PATCH
-async function PatchData(endpoint, body) {
+// PUT
+async function PutData(endpoint, id, body) {
+    console.log(endpoint, id, body);
+      
     try {
-        const response = await fetch(`${API_URL}${endpoint}`, {
-            method: 'PATCH',
+        const response = await fetch(`${API_URL}${endpoint}${id}/`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
         });
+
         if (!response.ok) {
-            throw new Error('Error al actualizar ' + endpoint);
+            throw new Error('Error al actualizar (PUT) ' + endpoint);
         }
+
         const data = await response.json();
         return data;
 
     } catch (error) {
-        console.error('Error al actualizar:', endpoint, error);
+        console.error('Error al actualizar (PUT):', endpoint, error);
         throw error;
     }
 }
+
+// PATCH
+async function PatchData(endpoint, id, body) {
+  try {
+    const response = await fetch(`${API_URL}${endpoint}${id}/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al actualizar " + endpoint);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error al actualizar:", endpoint, error);
+    throw error;
+  }
+}
+
 
 // DELETE
-async function DeleteData(endpoint) {
-    try {
-        const response = await fetch(`${API_URL}${endpoint}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        if (!response.ok) {
-            throw new Error('Error al eliminar ' + endpoint);
-        }
-        return { message: 'Eliminado correctamente' };
+async function DeleteData(endpoint, id) {
+  try {
+    const response = await fetch(`${API_URL}${endpoint}${id}/`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-    } catch (error) {
-        console.error('Error al eliminar:', endpoint, error);
-        throw error;
+    if (!response.ok) {
+      throw new Error("Error al eliminar " + endpoint);
     }
+
+    return { message: "Eliminado correctamente" };
+  } catch (error) {
+    console.error("Error al eliminar:", endpoint, error);
+    throw error;
+  }
 }
 
-export { GetData, PostData, PatchData, DeleteData };
+export { GetData, PostData, PutData, PatchData, DeleteData };

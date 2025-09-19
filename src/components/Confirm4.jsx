@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import Loader from './Loader'
 import { GetData, PostData } from '../services/ApiServices';
 import Swal from 'sweetalert2'
+import { Eye, EyeOff } from "lucide-react";
 
 function Confirm4() {
 
@@ -23,6 +24,7 @@ function Confirm4() {
     const [ShowModal, setShowModal] = useState(false)
     const [ShowLoader, setShowLoader] = useState(false)
     
+    const [ShowPassword, setShowPassword] = useState(false);
     const [AcceptedTermsCheked, setAcceptedTermsCheked] = useState(false)
     const [MessageTerms, setMessageTerms] = useState("")
 
@@ -214,11 +216,11 @@ function Confirm4() {
 
 
     return (
-        <div className="flex items-center">
+        <div className="flex items-center h-[100vh]">
             {ShowLoader && (
                 <Loader/>
             )}
-            <form className="w-[100%] md:mt-4 md:w-[50%] flex flex-col gap-5 mx-auto border border-gray-700 rounded-2xl pb-5 ">
+            <form className="py-10 w-[90%] md:mt-4 md:w-[55%] lg:w-[40%] flex flex-col gap-7 mx-auto border border-gray-700 rounded-2xl ">
                 {/* Texto explicativo */}
                 <div className="w-[90%] mx-auto mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">             
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">¡Regístrate y disfruta de todos nuestros servicios!</h2>
@@ -265,7 +267,7 @@ function Confirm4() {
                     {/* Password */}
                     <input
                         autoComplete='off'
-                        type="password"
+                        type={ShowPassword ? "text" : "password"}
                         id="password"
                         value={Password}
                         onChange={ValidatePassword}
@@ -282,6 +284,11 @@ function Confirm4() {
                     >
                         Contraseña
                     </label>
+
+                    <button type="button" onClick={e => setShowPassword(!ShowPassword)} className="absolute right-3 top-3 flex items-center text-gray-400 hover:text-white" >
+                        {ShowPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+
                     {Message && <p className="text-red-500 text-[10px]">{Message}</p>}
 
                     {/* Popover */}
@@ -309,7 +316,7 @@ function Confirm4() {
                     {/* Confirm */}
                     <input
                         autoComplete='off'
-                        type="password"
+                        type={ShowPassword ? "text" : "password"}
                         id="confirm"
                         value={ConfirmPassword}
                         onChange={ValidateConfirm}
@@ -345,16 +352,8 @@ function Confirm4() {
 
 
                 <div className="flex justify-between w-[80%] mx-auto">
-
-                    <Link to={-1} className="text-white flex items-center border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-gray-600  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        <svg className="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12l4-4m-4 4 4 4"/>
-                        </svg>
-                        Volver
-                    </Link>
-
                     <button type='button' onClick={() => PostRegister()} className="text-white flex items-center border border-gray-800 hover:bg-gray-900 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 dark:border-gray-600  dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                    Registrarme            
+                        Registrarme            
                     </button>
                 </div>
                 <p className="mb-3 text-center text-sm font-medium text-gray-900 dark:text-gray-300" >¿Ya tienes una cuenta? <Link to="/IniciarSesion" className="cursor-pointer ml-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-500" > Inicia sesión </Link> </p>

@@ -227,11 +227,11 @@ function Verification3() {
 
 
     return (
-        <div className="flex items-center">
+        <div className="flex items-center h-[100vh]">
             {ShowLoader && (
                 <Loader/>
             )}
-            <form className="w-[100%] md:mt-4 md:w-[50%] flex flex-col gap-5 mx-auto border border-gray-700 rounded-2xl pb-5 ">
+            <form className="py-10 w-[90%] md:mt-4 md:w-[55%] lg:w-[40%] flex flex-col gap-7 mx-auto border border-gray-700 rounded-2xl ">
                 {/* Texto explicativo */}
                 <div className="w-[90%] mx-auto mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">             
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">¡Regístrate y disfruta de todos nuestros servicios!</h2>
