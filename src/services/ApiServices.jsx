@@ -1,5 +1,6 @@
 
 const API_URL = "http://127.0.0.1:8000/api/";
+// const API_URL = "https://cttgghnx-8000.use2.devtunnels.ms/";
 
 // GET
 async function GetData(endpoint) {
@@ -89,13 +90,44 @@ async function PatchData(endpoint, id, body) {
     }
 
     const data = await response.json();
-    return data;
+    return {
+        status: response.status,
+        data: data
+    };
+    
   } catch (error) {
     console.error("Error al actualizar:", endpoint, error);
     throw error;
   }
 }
 
+
+// DELETE USER
+async function DeleteUserData(endpoint, id) {
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ID: id }),
+
+    });
+
+    if (!response.ok) {
+      throw new Error("Error al eliminar " + endpoint);
+    }
+
+    return {
+        status: response.status,
+        message: "Eliminado correctamente"
+    };
+
+  } catch (error) {
+    console.error("Error al eliminar:", endpoint, error);
+    throw error;
+  }
+}
 
 // DELETE
 async function DeleteData(endpoint, id) {
@@ -111,11 +143,15 @@ async function DeleteData(endpoint, id) {
       throw new Error("Error al eliminar " + endpoint);
     }
 
-    return { message: "Eliminado correctamente" };
+    return {
+      status: response.status,
+      message: "Eliminado correctamente"
+    };
+
   } catch (error) {
     console.error("Error al eliminar:", endpoint, error);
     throw error;
   }
 }
 
-export { GetData, PostData, PutData, PatchData, DeleteData };
+export { GetData, PostData, PutData, PatchData, DeleteUserData, DeleteData };

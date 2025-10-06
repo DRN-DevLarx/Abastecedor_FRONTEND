@@ -1,6 +1,8 @@
 import React from 'react'
 
 import Navbar from '../components/NavbarComp'
+import Alert from '../components/Alert'
+
 import Header from '../components/Header'
 import Carousel from '../components/Carousel'
 import About from '../components/About'
@@ -12,8 +14,11 @@ function LandingPage() {
     return (
         <div>
             <Navbar />
+            {/* <Usooo /> */}
+            <Alert />
+
             <Header />
-            <Carousel />
+            {/* <Carousel /> */}
             <About />
             <Comments />
             <Suscribe />

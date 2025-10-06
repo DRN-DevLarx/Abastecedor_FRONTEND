@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 
 function Suscribe() {
     return (
-        <section class="bg-white dark:bg-gray-900 bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern.svg')] dark:bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern-dark.svg')]">
+        <section class="bg-[#adb6aaa8] dark:bg-[#171731] bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern.svg')] dark:bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern-dark.svg')]">
             <div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16 z-10 relative">
-                <Link to="/productos" class="inline-flex justify-between items-center py-1 px-1 pe-4 mb-7 text-sm text-blue-700 bg-blue-100 rounded-full dark:bg-blue-900 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800">
-                    <span class="text-xs bg-blue-600 rounded-full text-white px-4 py-1.5 me-3">Explora, elige y recibe: </span> <span class="text-sm font-medium">¡Mira nuestros productos!</span> 
+                <Link to="/productos" class="inline-flex justify-between items-center py-1 px-1 pe-4 mb-7 text-sm text-[#38664e] bg-blue-100 rounded-full dark:bg-gray-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-gray-800">
+                    <span class="text-xs bg-[#38664e] rounded-full text-white px-4 py-1.5 me-3">Explora, elige y recibe: </span> <span class="text-sm font-medium">¡Mira nuestros productos!</span> 
                     <svg class="w-2.5 h-2.5 ms-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
                     </svg>
@@ -22,8 +22,8 @@ function Suscribe() {
                                 <path d="M11.241 9.817c-.36.275-.801.425-1.255.427-.428 0-.845-.138-1.187-.395L0 2.6V14a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V2.5l-8.759 7.317Z"/>
                             </svg>
                         </div>
-                        <input type="email" id="default-email" class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-white focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="Ingresa tu correo aquí" required />
-                        <button type="submit" class="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Suscribete</button>
+                        <input type="email" id="default-email" class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-[#adb6aaa8] focus:ring-[#38664e] focus:border- dark:bg-gray-800 dark:border-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-[#38664e] dark:focus:border-" placeholder="Ingresa tu correo aquí" required />
+                        <button type="submit" class="text-white absolute end-2.5 bottom-2.5 bg-[#38664e] hover:bg-[#219e5d9a] hover:text-black focus:ring-4 focus:outline-none focus:ring-[#38664e] font-medium rounded-lg text-sm px-4 py-2  dark:hover:bg-[#CCBFA4] y">Suscribete</button>
                     </div>
                 </form>
             </div>

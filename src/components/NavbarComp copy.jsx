@@ -13,8 +13,10 @@ import {
 
 import Logo from "../assets/logo.png";
 import {Link, useNavigate} from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 import { getCookie, Logout, GenerateToken } from "../services/Token/sessionManager";
 import { AutenticatedUserData } from "../services/Token/AuthServices";
+
 import { GetData, PatchData } from "../services/ApiServices";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -29,13 +31,7 @@ export default function NavbarComp() {
   const [ShowLoader, setShowLoader] = useState(false);
   
   const access_token = getCookie("access_token");
-  
-  let userQuery = null
-
-  if(access_token) {
-    userQuery = AutenticatedUserData();
-  }
-
+  const userQuery = AutenticatedUserData();
 
   const [Id, setId] = useState("");
   const [Username, setUsername] = useState("");
@@ -44,36 +40,42 @@ export default function NavbarComp() {
 
   
   useEffect(() => {
-    if (!userQuery) return; // si no hay token, no ejecutes nada
+      
+      if (userQuery.status === "success" && userQuery.data) {
+          setAutenticate(true)
+          setId(userQuery.data.id) 
+          setUsername(userQuery.data.username);
 
-    if (userQuery.status === "success" && userQuery.data) {
-      setAutenticate(true);
-      setId(userQuery.data.id);
-      setUsername(userQuery.data.username);
-
-      if (userQuery.data.groups.includes(1)) {
-        setIsAdmin(true);
+          
+          if (userQuery.data.groups.includes(1)) {
+            setIsAdmin(true)
+          }
+          
+          if (!userQuery.data.is_active) {
+            showPasswordResetSwal(userQuery.data.id)
+          }
       }
-
-      if (!userQuery.data.is_active) {
-        showPasswordResetSwal(userQuery.data.id);
+  
+      const fetchData = async () => {
+          
+          const GetUserInfo = await GetData("informacionUsuarios/");
+                    
+          // filtrar usuario por id
+          const CurrentUserID = userQuery.data.id;
+          const CurrenteUserInfo = GetUserInfo.find(CUInfo => CUInfo.user === CurrentUserID)
+      
+          if (CurrenteUserInfo) {
+              setUserImage(CurrenteUserInfo.referenciaIMG);
+              
+              if(!CurrenteUserInfo.referenciaIMG) {
+              setUserImage(DefaultImage);
+              }
+          } 
       }
-    }
+      fetchData();
+  }, [ access_token, userQuery.status, userQuery.data]);
+  
 
-    const fetchData = async () => {
-      const GetUserInfo = await GetData("informacionUsuarios/");
-      const CurrentUserID = userQuery.data.id;
-      const CurrenteUserInfo = GetUserInfo.find(
-        (CUInfo) => CUInfo.user === CurrentUserID
-      );
-
-      if (CurrenteUserInfo) {
-        setUserImage(CurrenteUserInfo.referenciaIMG || DefaultImage);
-      }
-    };
-
-    fetchData();
-  }, [access_token, userQuery?.status, userQuery?.data]);
 
   const showPasswordResetSwal = async (IdUser) => {
     let password = "";
@@ -267,7 +269,6 @@ export default function NavbarComp() {
   }
 
   const ViewProfile = async () => {
-    
       const TOKEN = await GenerateToken({ id: Id, ViewUserAdmin: false }, "UserCookie");
 
       if(TOKEN) {
@@ -285,152 +286,70 @@ export default function NavbarComp() {
     }, 1500);
   };
 
-  return ( 
-    <Navbar
-      fluid
-      rounded
-      className="bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] py-0"
-    >
-      {ShowLoader && <Loader />}
+  return (  
+    <Navbar fluid rounded className="dark:text-[#CEC19F] bg-[#adb6aaa8] dark:bg-[#171731] py-0 h-18">
 
-      {/* Contenedor principal flex */}
-      <div className="flex items-center justify-between w-full">
+      {ShowLoader && (
+          <Loader/>
+      )}
 
-        
-        {/* Menú hamburguesa SOLO en móvil */}
-        <div className="flex items-center md:hidden">
+      <NavbarBrand className="relative hidden sm:inline">
+        <img src={Logo} className="h-18 w-35 sm:h-18" alt="Logo" />
+      </NavbarBrand>
+
+        <div className="flex gap-2 mt-4 sm:mt-0 md:order-1">
+          <Dropdown
+            arrowIcon={false}
+            inline
+            className="bg-[#adb6aa] mt-10 relative"
+            label={
+              <Avatar className="right-16 top-4 absolute sm:relative sm:right-0 sm:top-0" alt="Imagen de usuario" img={UserImage} rounded />
+            }
+          >
+            {Autenticate && (
+              <div>
+
+                <DropdownHeader>
+                  <span className="block text-sm">Nombre de usuario</span>
+                  <span className="block truncate text-sm font-medium">{Username}</span>
+                </DropdownHeader>
+    
+                <div className="" onClick={() => ViewProfile()}> <DropdownItem > Perfil </DropdownItem> </div>
+ 
+                {IsAdmin && ( <Link to="/admin"> <DropdownItem > Administrar </DropdownItem>  </Link> )}
+
+                <DropdownDivider className="bg-gray-900"/>
+
+                <DropdownItem className="hover:scale-105" onClick={CerrarSesion}> Cerrar Sesión  </DropdownItem>
+              </div>
+           )}
+          </Dropdown>
+
+          <div className=" rounded-full p-1 absoute right-3 top-4 sm:relative flex items-center">
+            <LucideShoppingCart size={30}/>
+          </div>
+
           <NavbarToggle />
         </div>
 
-        {/* Logo CENTRADO en móvil / Izquierda en desktop */}
-        <NavbarBrand className="flex justify-center flex-1 min-[640px]:flex-none">
-          <img src={Logo} className="h-16 w-auto" alt="Logo" />
-        </NavbarBrand>
-
-        {/* Usuario + carrito */}
-        {Autenticate ? (
-          <div className="flex items-center gap-3 min-[640px]:order-1">
-            <Dropdown
-              arrowIcon={false}
-              inline
-              className="bg-[#adb6aa]"
-              label={
-                <Avatar
-                  className="min-[640px]:relative"
-                  alt="Imagen de usuario"
-                  img={UserImage}
-                  rounded
-                />
-              }
-            >
-                <>
-                  <DropdownHeader>
-                    <span className="block text-min-[640px]">Nombre de usuario</span>
-                    <span className="block truncate text-min-[640px] font-medium">
-                      {Username}
-                    </span>
-                  </DropdownHeader>
-
-                  <div onClick={ViewProfile}>
-                    <DropdownItem>Perfil</DropdownItem>
-                  </div>
-
-                  {IsAdmin && (
-                    <Link to="/admin">
-                      <DropdownItem>Administrar</DropdownItem>
-                    </Link>
-                  )}
-
-                  <DropdownDivider className="bg-gray-900" />
-                  <DropdownItem onClick={CerrarSesion}>Cerrar Sesión</DropdownItem>
-                </>
-              
-            </Dropdown>
-
-            <div
-            className="flex items-center justify-center bg-gray-500 text-black hover:bg-black hover:text-white w-9 h-9 rounded-full p-1  dark:bg-black dark:text-white dark:hover:bg-gray-500 ">
-              <LucideShoppingCart />
-                <div 
-                className="absolute top-3 end-1 min-[640px]:end-3 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white dark:text-black bg-[#38664e] dark:bg-[#adb6aa] rounded-full dark:border-gray-900">8</div>
-            </div>
-                        
-          </div>
-
-        ) : (
-          <Avatar className="min-[640px]:relative" alt="Imagen de usuario" img={UserImage} rounded />
-        )}
-
-      </div>
-
-      {/* Colapso del menú */}
+      
       <NavbarCollapse>
-        <hr className="border-gray-900 dark:border-[#668672c1] md:hidden" />
+        <hr className="border-gray-900 dark:border-[#668672c1]" />
         
         {!Autenticate ? (
-          <div className="flex flex-col md:flex-row md:justify-around md:absolute md:mt-0
-          md:w-[63%] min-[640px]:top-5  min-[640px]:left-[20%]
-          lg:w-[63%]">
-
-            <Link
-              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1] min-[640px]:mt-0" 
-              to="/"> 
-              Inicio
-            </Link>
-
-            <hr className="border-gray-900 dark:border-[#668672c1] md:hidden" />
-
-            <Link
-              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1]" 
-              to="/about">
-              Sobre nosotros
-            </Link>
-
-            <hr className="border-gray-900 dark:border-[#668672c1] md:hidden" />
-
-            <Link
-              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1]" 
-              to="/productos">
-              Productos
-            </Link>
-
-            <hr className="border-gray-900 dark:border-[#668672c1] md:hidden" />
-
-            <Link 
-              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1]" 
-              to="/contactar">
-              Contacto
-            </Link>
-            <hr className="border-gray-900 dark:border-[#668672c1] md:hidden" />
+          <div className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0 md:mb-0">
+            <Link className="text-[15px] px-3 py-1 text-center rounded-[5px] hover: scale-110 hover:bg-[#668672c1] -mt-4 md:mt-0 lg:mt-0" to="/#"> Inicio</Link><hr className="border-gray-900 dark:border-[#668672c1]" />
+            <Link className="text-[15px] px-3 py-1 text-center rounded-[5px] hover: scale-110 hover:bg-[#668672c1]" to="/about">Sobre nosotros</Link><hr className="border-gray-900 dark:border-[#668672c1]" />
+            <Link className="text-[15px] px-3 py-1 text-center rounded-[5px] hover: scale-110 hover:bg-[#668672c1]" to="/productos">Productos</Link><hr className="border-gray-900 dark:border-[#668672c1]" />
+            <Link className="text-[15px] px-3 py-1 text-center rounded-[5px] hover: scale-110 hover:bg-[#668672c1]" to="/contactar">Contacto</Link><hr className="border-gray-900 dark:border-[#668672c1]" />
           </div>
-        ) 
+        )
 
         : (
-          <div className="flex flex-col md:flex-row md:absolute md:mt-0 md:top-5
-          md:justify-center md:w-[63%] md:left-[20%] md:gap-10
-          lg:w-[63%]">
-
-            <Link
-              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1] min-[640px]:mt-0" 
-              to="/principal"> 
-              Inicio
-            </Link>
-
-            <hr className="border-gray-900 dark:border-[#668672c1] min-[640px]:hidden" />
-
-            <Link
-              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1]" 
-              to="/about">
-              Sobre nosotros
-            </Link>
-
-            <hr className="border-gray-900 dark:border-[#668672c1] min-[640px]:hidden" />
-
-            <Link 
-              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1]" 
-              to="/contactar">
-              Contacto
-            </Link>
-            <hr className="border-gray-900 dark:border-[#668672c1] min-[640px]:hidden" />
+          <div className="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0 md:mb-0">
+            <Link className="text-[15px] px-3 py-1 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1]  -mt-4 md:mt-0 lg:mt-0" to="/principal"> Inicio</Link><hr className="border-gray-900 dark:border-[#668672c1]" />
+            <Link className="text-[15px] px-3 py-1 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1]" to="/about">Sobre nosotros</Link><hr className="border-gray-900 dark:border-[#668672c1]" />
+            <Link className="text-[15px] px-3 py-1 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1]" to="/contactar">Contacto</Link><hr className="border-gray-900 dark:border-[#668672c1]" />
           </div>
         )}
 

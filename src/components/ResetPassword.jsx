@@ -53,20 +53,9 @@ function ResetPassword() {
     const message = validateEmail(email);
     setErrorMessage(message);
 
-    if (message) {
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: message,
-        confirmButtonText: "Aceptar",
-        confirmButtonColor: '#3B82F6',
-        background: '#233876aa',
-        color: 'white'
-      })
-      return;
-
+    if (!message) {      
+      await RequestReset();
     }    
-    await RequestReset();
   };
 
   // Solicitar restablecimiento de contraseña
@@ -118,38 +107,38 @@ function ResetPassword() {
   }
 
   return (
-    <div className="flex items-center h-[100vh]">
+    <div className="bg-[#adb6aaa8] dark:bg-[#171731] flex items-center h-[100vh]">
       {ShowLoader && <Loader />}
 
-      <form className="py-10 w-[90%] md:mt-4 md:w-[55%] lg:w-[40%] flex flex-col gap-7 mx-auto border border-gray-700 rounded-2xl">
+      <form className="bg-[#adb6aa] dark:bg-gray-800 py-5 w-[80%] sm:w-[60%] md:mt-4 md:w-[55%] lg:w-[40%] flex flex-col gap-7 mx-auto border border-gray-700 rounded-2xl">
         {/* Texto explicativo */}
-        <div className="w-[80%] mx-auto mt-6 p-4 bg-blue-50 dark:bg-blue-900 rounded-lg">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        <div className="w-[80%] mx-auto py-2 px-4 bg-[#38664e] rounded-lg">
+          <h2 className="text-lg font-semibold text-white mb-1">
             Restablecer contraseña
           </h2>
-          <p className="text-sm text-gray-700 dark:text-gray-300">
+          <p className="text-sm text-gray-300">
             Ingresa tu correo electrónico registrado para restablecer tu contraseña.
           </p>
         </div>
 
         {/* Email */}
-        <div className="relative w-[80%] mx-auto">
+        <div className="relative w-[80%] mx-auto mb-3">
           <input
             type="email"
             id="email"
             value={email}
             onChange={(e) => handleChange(e.target.value)}
-            className="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border border-gray-300 appearance-none dark:text-white dark:border-gray-600 focus:outline-none peer"
+            className="block px-2.5 pb-1.5 pt-3 w-full text-sm text-gray-900 bg-transparent rounded-lg border appearance-none dark:text-white dark:border-gray-600 focus:border-green-300 focus:outline-none focus:ring-0 peer"
             placeholder=" "
           />
           <label
             htmlFor="email"
-            className="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] bg-white dark:bg-gray-900 px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-3 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 start-1"
+            className="absolute text-sm bg-[#adb6aa] dark:bg-gray-800 text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-1 z-10 origin-[0] px-2 peer-focus:px-2 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-3 peer-placeholder-shown:top-1/2 peer-focus:top-1 peer-focus:scale-75 peer-focus:-translate-y-3 start-1"
           >
             Correo electrónico
           </label>
           {ErrorMessage && (
-            <p className="text-red-500 text-xs mt-1">{ErrorMessage}</p>
+            <p className="absolute text-red-500 text-xs mt-1">{ErrorMessage}</p>
           )}
         </div>
 
@@ -158,7 +147,7 @@ function ResetPassword() {
           <button
             type="button"
             onClick={handleSubmit}
-            className="text-white flex items-center border border-gray-800 hover:bg-gray-900 font-medium rounded-lg text-sm px-5 py-2.5 dark:border-gray-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+            className="text-white flex items-center focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2 text-center me-2 bg-[#38664e] hover:bg-[#24b469] hover:text-black focus:ring-[#38664e] "
           >
             Restablecer
           </button>
