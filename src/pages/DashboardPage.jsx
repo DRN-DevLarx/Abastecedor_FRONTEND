@@ -1,10 +1,52 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
 import { Menu } from "lucide-react";
-import UserImage from "../assets/UserImage.png";
+
+import { GetData } from "../services/ApiServices";
+import { getCookie } from "../services/Token/sessionManager";
+import { jwtDecode } from "jwt-decode";
+import { AutenticatedUserData } from "../services/Token/AuthServices";
 
 function DashboardPage() {
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
+  const [UserName, setUserName] = useState("");
+  const [UserImage, setUserImage] = useState("");
+
+  const access_token = getCookie("access_token");
+  const Role = jwtDecode(access_token).role;
+
+  const userQuery = AutenticatedUserData();
+
+    useEffect(() => {
+  
+      if (userQuery.status === "success" && userQuery.data) {
+        setUserName(userQuery.data.username);
+      }
+  
+      const fetchData = async () => {
+          
+        const AditionalInfo = await GetData("informacionUsuarios/");
+        
+        // filtrar usuario por id
+        const ID = userQuery.data.id;
+        const UserInfo = AditionalInfo.find(UInfo => UInfo.user === ID)        
+        
+        if (UserInfo) {
+          
+          if(!UserInfo.referenciaIMG) {
+            setUserImage(DefaultImage);
+          } else {  
+            setUserImage(UserInfo.referenciaIMG);
+          }
+        }
+
+      }
+      fetchData();
+    }, [ userQuery.status, userQuery.data]);
+    
 
   return (
     <div className="flex h-screen bg-[#0f172a] text-white">
@@ -34,8 +76,10 @@ function DashboardPage() {
         {/* Usuario */}
         <div className="flex items-center gap-2 ml-auto">
           <div className="text-right">
-            <h3 className="font-bold">Username</h3>
-            <p className="text-gray-400">Administrador</p>
+            <h3 className="font-bold"> {UserName} </h3>
+            <p className="text-gray-400"> 
+              {/* {Role.includes("admin") && "Administrador"} */}
+            </p>
           </div>
           <img className="w-10 rounded-full border border-gray-600" src={UserImage} alt="user" />
         </div>

@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { X, ChartAreaIcon, User, Package, MessageCircle, Settings, LogOut, ArrowLeft } from "lucide-react";
+import { Logout } from "../services/Token/sessionManager";
 import Statistics from "./Statistics";
-import Products from "./Products"
-import { Link } from "react-router-dom";
+import Messages from "./Messages";
+import { useNavigate } from "react-router-dom";
+import Loader from "./Loader";
 
 function Sidebar({ sidebarOpen, setSidebarOpen }) {
+
+  const navigate = useNavigate()
+  const [ShowLoader, setShowLoader] = useState(false);
 
   const [activeMenu, setActiveMenu] = useState("Statistics");
   const [currentComponent, setCurrentComponent] = useState(<Statistics />);
 
   const menuItems = [
     { name: "Estadísticas", icon: <ChartAreaIcon size={18} />, component: <Statistics /> },
-    { name: "Productos", icon: <Package size={18} />, component: <Products/> },
-    { name: "Mensajes", icon: <MessageCircle size={18} />, component: <div>Mensajes</div> },
+    { name: "Mensajes", icon: <MessageCircle size={18} />, component: <Messages /> },
     { name: "Ajustes", icon: <Settings size={18} />, component: <div>Ajustes</div> },
-    { name: "Cerrar sesión", icon: <LogOut size={18} />, component: <div>Cerrar sesión</div> },
+    // { name: "Cerrar sesión", icon: <LogOut size={18} />, component: <div></div> },
   ];
-
+  
   // Recuperar menú activo al montar
   useEffect(() => {
     const savedMenu = localStorage.getItem("activeMenu");
@@ -37,8 +41,27 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
     localStorage.setItem("activeMenu", item.name);
   };
 
+  const Back = () => {
+    document.cookie = "ProductsCookie=; path=/; max-age=0; secure; SameSite=Strict";
+    navigate("/principal")
+  }
+
+  const CerrarSesion = () => {
+    setShowLoader(true); // mostrar loader
+
+    setTimeout(() => {
+      setShowLoader(false); // ocultar loader      
+      navigate("/IniciarSesion");
+      Logout()
+    }, 1500);
+  };
+
   return (
     <>
+
+      {ShowLoader && (
+          <Loader/>
+      )}
 
       {/* Sidebar */}
       <aside
@@ -48,11 +71,12 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       >
         <div className="flex items-center justify-around mb-5">
 
-          <Link to="/principal"
+          <button 
+          onClick ={Back}
           className="hover:scale-150"
           >
             <ArrowLeft size={24} />
-          </Link>
+          </button >
 
           <h1 className="text-2xl font-bold">Administración</h1>
         </div>
@@ -69,6 +93,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
               {item.icon} {item.name}
             </button>
           ))}
+          <button 
+          onClick={CerrarSesion}
+          className={"flex items-center gap-3 p-2 w-full text-left rounded-lg hover:bg-[#334155]"}>
+
+            <LogOut size={18} />
+            Cerrar sesión
+          </button>
         </nav>
       </aside>
 

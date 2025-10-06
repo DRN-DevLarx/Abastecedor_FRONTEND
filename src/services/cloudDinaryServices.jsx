@@ -23,6 +23,7 @@ const uploadImage = async (file) => {
 
     const data = await response.json();
     return data.secure_url; // Retorna la URL de la imagen subida
+
   } catch (error) {
     console.error("Error al subir la imagen:", error);
     return null;
