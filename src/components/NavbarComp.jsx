@@ -19,7 +19,7 @@ import { GetData, PatchData } from "../services/ApiServices";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import Loader from "./Loader";
-import { LucideShoppingCart } from "lucide-react";
+import { LucideAtSign, LucideLogIn, LucideShoppingCart, LucideUserPlus, LucideUserRoundPen } from "lucide-react";
 
 
 export default function NavbarComp() {
@@ -357,7 +357,28 @@ export default function NavbarComp() {
           </div>
 
         ) : (
-          <Avatar className="min-[640px]:relative" alt="Imagen de usuario" img={UserImage} rounded />
+          <div className="flex items-center gap-3 min-[640px]:order-1">
+            <Dropdown
+              arrowIcon={false}
+              inline
+              className="bg-[#adb6aa]"
+              label={
+                <Avatar
+                  className="min-[640px]:relative"
+                  alt="Imagen de usuario"
+                  img={UserImage}
+                  rounded
+                />
+              }
+            >
+                <div className="flex flex-col w-full">
+                    <DropdownItem onClick={() => navigate("/registro")} className="flex gap-1"> <LucideUserRoundPen size={20}/> Registrarse </DropdownItem>
+
+                    <DropdownItem onClick={() => navigate("/IniciarSesion")} className="flex gap-1"> <LucideLogIn size={20} /> Iniciar sesión </DropdownItem>
+                </div>
+              
+            </Dropdown>                        
+          </div>
         )}
 
       </div>

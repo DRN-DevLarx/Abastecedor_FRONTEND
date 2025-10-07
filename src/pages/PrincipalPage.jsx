@@ -1,6 +1,8 @@
 import React from 'react'
 import NavComponent from '../components/NavbarComp'
 import Products from '../components/Products'
+import Suscribe from '../components/Suscribe'
+
 import Footer from '../components/Footer';
 
 function PrincipalPage() {
@@ -8,6 +10,7 @@ function PrincipalPage() {
         <div>
             <NavComponent />
             <Products />
+            <Suscribe />
             <Footer />
         </div>
     )

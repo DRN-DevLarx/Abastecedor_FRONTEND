@@ -7,21 +7,19 @@ import Header from '../components/Header'
 import Carousel from '../components/Carousel'
 import About from '../components/About'
 import Comments from '../components/Comments'
-import Suscribe from '../components/Suscribe'
+import CategoriesMarquee from '../components/CategoriesMarquee'
 import Footer from '../components/Footer'
 
 function LandingPage() {
     return (
         <div>
             <Navbar />
-            {/* <Usooo /> */}
             <Alert />
-
             <Header />
-            {/* <Carousel /> */}
+            <CategoriesMarquee />
+            <Carousel />
             <About />
             <Comments />
-            <Suscribe />
             <Footer />
         </div>
     );

@@ -72,29 +72,29 @@ function Statistics() {
     {/* Content */}
       <main className="flex-1 p-6 overflow-y-auto z-20">
         <br />
-        <h2 className="text-2xl font-bold mb-6">Estadisticas generales</h2>
+        <h2 className="text-black dark:text-white text-2xl font-bold mt-2 mb-4">Estadisticas generales</h2>
 
         {/* Stats Cards */} 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
 
-          <div onClick={(() => navigate("/usuarios"))} className="hover:scale-110 hover:bg-green-900 bg-[#1e293b] p-4 rounded-xl shadow">
-            <p className="text-gray-400">Total de usuarios</p>
+          <div onClick={(() => navigate("/usuarios"))} className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
+            <p className="text-black font-bold dark:text-gray-400">Total de usuarios</p>
             <h2 className="text-2xl font-bold text-white">{UserTotal}</h2>
           </div>
 
-          <div onClick={ViewProducts} className="hover:scale-110 hover:bg-green-900 bg-[#1e293b] p-4 rounded-xl shadow">
-            <p className="text-gray-400">Total de productos</p>
+          <div onClick={ViewProducts} className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
+            <p className="text-black font-bold dark:text-gray-400">Total de productos</p>
             <h2 className="text-2xl font-bold text-white">{ProductsTotal}</h2>
           </div>
 
-          <div className="bg-[#1e293b] p-4 rounded-xl shadow">
-            <p className="text-gray-400">Total de pedidos</p>
+          <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
+            <p className="text-black font-bold dark:text-gray-400">Total de pedidos</p>
             <h2 className="text-2xl font-bold text-white">230</h2>
             <span className="text-green-400 text-sm">+0.43%</span>
           </div>
           
-          <div className="bg-[#1e293b] p-4 rounded-xl shadow">
-            <p className="text-gray-400">Total de ventas</p>
+          <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
+            <p className="text-black font-bold dark:text-gray-400">Total de ventas</p>
             <h2 className="text-2xl font-bold text-white">$45.2K</h2>
             <span className="text-green-400 text-sm">+4.53%</span>
           </div>

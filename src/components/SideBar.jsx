@@ -65,7 +65,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 text-white bg-[#1e293b] w-64 p-4 transform lg:translate-x-0 transition-transform duration-300 z-50 ${
+        className={`bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] fixed inset-y-0 left-0 text-white w-64 p-4 transform lg:translate-x-0 transition-transform duration-300 z-50 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -86,13 +86,14 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             <button
               key={item.name}
               onClick={() => handleClick(item)}
-              className={`flex items-center gap-3 p-2 w-full text-left rounded-lg hover:bg-[#334155] ${
-                activeMenu === item.name ? "bg-[#334155]" : ""
+              className={`flex items-center gap-3 p-2 w-full text-left rounded-lg hover:bg-[#62676dc9] ${
+                activeMenu === item.name ? "bg-[#62676dc9]" : ""
               }`}
             >
               {item.icon} {item.name}
             </button>
           ))}
+          
           <button 
           onClick={CerrarSesion}
           className={"flex items-center gap-3 p-2 w-full text-left rounded-lg hover:bg-[#334155]"}>
@@ -104,7 +105,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       </aside>
 
       {/* Renderizado del componente activo */}
-      <main className="flex-1 p-6 overflow-y-auto lg:ml-64">
+      <main className="bg-[#adb6aaa8] dark:bg-[#171731] flex-1 p-6 overflow-y-auto lg:ml-64">
         {currentComponent}
       </main>
     </>

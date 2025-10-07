@@ -2,33 +2,45 @@ import React from 'react'
 
 function About() {
     return (
-        <section id="About" class="bg-[#adb6aaa8] dark:bg-[#171731]">
-            <div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16">
+        <section class="bg-[#adb6aaa8] dark:bg-[#171731]">
+            <div class="container px-6 py-10 mx-auto">
+                <h1 class="text-2xl font-semibold text-gray-800 capitalize lg:text-3xl dark:text-white"> Sobre Nosotros</h1>
 
-                <div class="w-[100%] sm:w-[80%] mx-auto bg-[#adb6aa] dark:bg-gray-800 dark:border-gray-700 rounded-lg p-8 md:p-7 mb-8">
-                    <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-blue-400 mb-2">
-                        Productos confiables a tu alcance.
-                    </span>
-                    <h1 class="text-gray-900 dark:text-white text-3xl md:text-4xl font-extrabold mb-2">Acerca de nosotros</h1>
-                    <p class="text-lg font-normal text-black dark:text-gray-400 mb-6">"En Adonay nos dedicamos a conectar productos con las personas que los necesitan. Nos enfocamos en ofrecer abastecimiento eficiente, precios accesibles y soluciones confiables. Creemos que un suministro responsable puede generar impacto positivo en la comunidad, fortaleciendo la economía local y apoyando el desarrollo sostenible."</p>
+                <div class="mt-2">
+                    <span class="inline-block w-40 h-1 bg-[#38664e] rounded-full"></span>
+                    <span class="inline-block w-3 h-1 ml-1 bg-[#38664e] rounded-full"></span>
+                    <span class="inline-block w-1 h-1 ml-1 bg-[#38664e] rounded-full"></span>
                 </div>
-                
-                <div class="w-[100%] sm:w-[80%] mx-auto grid md:grid-cols-2 gap-8">
-                    <div class="bg-[#adb6aa] dark:bg-gray-800 dark:border-gray-700 rounded-lg px-8 md:p-12">
-                        
-                    <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-blue-400 mb-2">
-                        Creciendo con nuestra comunidad.
-                    </span>
-                        <h2 class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2">Visión</h2>
-                        <p class="text-lg font-normal text-black dark:text-gray-400 mb-4">Ser la empresa líder en abastecimiento de productos, reconocida por su eficiencia, responsabilidad social y compromiso con comunidades y clientes, contribuyendo al bienestar y crecimiento sostenible en cada mercado que servimos.</p>
-                
+
+                <div class="mt-8 xl:mt-12 lg:flex lg:items-center">
+                    <div class="grid w-full grid-cols-2 gap-8 lg:w-1/2 xl:gap-16 md:grid-cols-2">
+
+                        <div class="space-y-3 col-span-2">
+
+                            <p class="text-gray-500 dark:text-gray-300">
+                                En Adonay nos dedicamos a conectar productos con las personas que los necesitan. Nos enfocamos en ofrecer abastecimiento eficiente, precios accesibles y soluciones confiables. Creemos que un suministro responsable puede generar impacto positivo en la comunidad, fortaleciendo la economía local y apoyando el desarrollo sostenible.
+                            </p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h1 class="text-xl font-semibold text-gray-700 capitalize dark:text-white">Visión</h1>
+
+                            <p class="text-gray-500 dark:text-gray-300">
+                                Ser la empresa líder en abastecimiento de productos, reconocida por su eficiencia, responsabilidad social y compromiso con comunidades y clientes, contribuyendo al bienestar y crecimiento sostenible en cada mercado que servimos.
+                            </p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h1 class="text-xl font-semibold text-gray-700 capitalize dark:text-white"> Misión </h1>
+
+                            <p class="text-gray-500 dark:text-gray-300">
+                                Proveer productos de manera confiable y accesible, garantizando disponibilidad constante, atención personalizada y soluciones innovadoras, para generar valor a nuestros clientes y fortalecer a las comunidades donde operamos.
+                            </p>
+                        </div>
                     </div>
-                    <div class="bg-[#adb6aa] dark:bg-gray-800 dark:border-gray-700 rounded-lg px-8 md:p-12">
-                    <span class="bg-blue-100 text-blue-800 text-xs font-medium inline-flex items-center px-2.5 py-0.5 rounded-md dark:bg-gray-700 dark:text-blue-400 mb-2">
-                        Comprometidos con la comunidad y el cliente.
-                    </span>
-                        <h2 class="text-gray-900 dark:text-white text-3xl font-extrabold mb-2">Misión</h2>
-                        <p class="text-lg font-normal text-black dark:text-gray-400 mb-4">Proveer productos de manera confiable y accesible, garantizando disponibilidad constante, atención personalizada y soluciones innovadoras, para generar valor a nuestros clientes y fortalecer a las comunidades donde operamo.</p>
+
+                    <div class="hidden lg:flex lg:w-1/2 lg:justify-center">
+                        <img class="w-[28rem] h-[28rem] flex-shrink-0 object-cover xl:w-[34rem] xl:h-[34rem] rounded-full" src="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80" alt=""/>
                     </div>
                 </div>
             </div>

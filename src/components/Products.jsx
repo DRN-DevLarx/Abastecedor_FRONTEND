@@ -1,127 +1,218 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { GetData } from "../services/ApiServices";
-import { getCookie } from "../services/Token/sessionManager";
-import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
-import { ShoppingCart, ArrowLeft, LucidePlusSquare } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 
 function Products() {
-    const totalStars = 5;
+  const totalStars = 5;
+  const [ProductsData, setProductsData] = useState([]);
+  const [CategoriesData, setCategoriesData] = useState([]);
+  const [SearchValue, setSearchValue] = useState("");
+  const [RatingFilter, setRatingFilter] = useState(0);
 
-    const [ProductsData, setProductsData] = useState([]);
-    const [CategoriesData, setCategoriesData] = useState([]);
+  const DefaultProductImage =
+    "https://res.cloudinary.com/dateuzds4/image/upload/v1758619222/x9mu7briwy28vj9od5bu.jpg";
 
-    const [SearchValue, setSearchValue] = useState("");
-    const DefaultProductImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758619222/x9mu7briwy28vj9od5bu.jpg";
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  useEffect(() => {
+    const fetchData = async () => {
+      const GetProductsData = await GetData("productos/");
+      const GetCategoriesData = await GetData("categorias/");
+      if (GetProductsData && GetCategoriesData) {
+        setProductsData(GetProductsData);
+        setCategoriesData(GetCategoriesData);
+      }
+    };
+    fetchData();
+  }, []);
 
-    useEffect(() => {
+  function FilterProducts(products, categories, searchValue, ratingFilter) {
+    return products.filter((product) => {
+      const category = categories.find((cat) => cat.id == product.categoria);
+      const categoryName = category ? category.nombre.toLowerCase() : "";
+      const inputLowerCase = searchValue.toLowerCase();
 
-        const fetchData = async () => {
-            const GetProductsData = await GetData("productos/");
-            const GetCategoriesData = await GetData("categorias/");
+      const matchesSearch =
+        !searchValue ||
+        product.nombre.toLowerCase().includes(inputLowerCase) ||
+        (product.codigo?.toLowerCase().includes(inputLowerCase)) ||
+        categoryName.includes(inputLowerCase) ||
+        product.precio.toString().includes(inputLowerCase) ||
+        product.stock.toString().includes(inputLowerCase);
 
-            if ( GetProductsData && GetCategoriesData) {
-                setProductsData(GetProductsData);
-                setCategoriesData(GetCategoriesData);
-            }
-        };
-        fetchData();
-    }, []);
+      const matchesRating =
+        ratingFilter === 0 || Math.floor(product.calificacion) === ratingFilter;
 
-    function Back() {
-        document.cookie = "ProductsCookie=; path=/; max-age=0; secure; SameSite=Strict";
-        navigate("/admin")
-    }
+      return matchesSearch && matchesRating;
+    });
+  }
 
-    function FilterProducts(products, categories, searchValue) {
-        if (!searchValue || searchValue.trim() === "") return products;
+  const filteredProducts = FilterProducts(
+    ProductsData,
+    CategoriesData,
+    SearchValue,
+    RatingFilter
+  );
 
-        const inputLowerCase = searchValue.toLowerCase();        
+  return (
+    <div className="bg-[#adb6aaa8] dark:bg-[#171731] min-h-screen py-8">
+      <h1 className="text-black dark:text-white text-3xl font-semibold pl-10 pb-6">
+        Productos disponibles
+      </h1>
 
-        return products.filter(product => {
-            const category = categories.find(cat => cat.id == product.categoria);
-            const categoryName = category ? category.nombre.toLowerCase() : "";            
-
-            return (
-                product.nombre.toLowerCase().includes(inputLowerCase) ||
-                // (product.descripcion?.toLowerCase().includes(inputLowerCase)) ||
-                (product.codigo?.toLowerCase().includes(inputLowerCase)) ||
-                categoryName.includes(inputLowerCase) ||
-                product.precio.toString().includes(inputLowerCase) ||
-                product.stock.toString().includes(inputLowerCase)
-            );
-        });
-    }
-
-    // Uso
-    let filteredProducts = FilterProducts(ProductsData, CategoriesData, SearchValue);
-        
-    return (
-        <div className="bg-[#adb6aaa8] dark:bg-[#171731]">
-            <h1 className='text-white text-3xl p-3 pl-10'> Productos disponibles</h1>
-
-            <div className="pb-10 w-[100%] mx-auto py-1 px-2 min-[600px]:px-8     gap-2 sm:gap-4 lg:gap-4 md:px-5 md:py-3 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                
-                {filteredProducts.map((product, index) => (
-                    <div key={index} class="bg-[#adb6aa] w-full max-w-sm mb-2 border border-gray-200 rounded-lg shadow-sm dark:bg-gray-800 dark:border-gray-700">
-                        <button className="w-full h-50 min-[600px]:h-55">
-                            <img class="opacity-90 h-full w-full object-cover p-[10%] pb-2 rounded-t-lg" src={product.referenciaIMG || DefaultProductImage} alt="product image" />
-                        </button>
-
-                        <div class="px-5 pb-5">
-                            <a href="#">
-                                <h5 class="h-[60px] overflow-auto text-[20px] sm:text-[22px] lg:text-[25px] lg:h-[80px] font-semibold tracking-tight text-gray-900 dark:text-white"> {product.nombre} </h5>
-                            </a>
-
-                            <div class="flex items-center mt-2.5 mb-3">
-                                {[...Array(totalStars)].map((_, index) => {
-
-                                    return index < product.calificacion ? (
-                                    <svg
-                                        key={index}
-                                        className="w-5 h-5 text-yellow-300"
-                                        aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="currentColor"
-                                        viewBox="0 0 22 20"
-                                    >
-                                        <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
-                                    </svg>
-                                    ) : (
-                                    <svg
-                                        key={index}
-                                        className="w-5 h-5 text-gray-200 dark:text-gray-600"
-                                        aria-hidden="true"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="currentColor"
-                                        viewBox="0 0 22 20"
-                                    >
-                                        <path d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z"/>
-                                    </svg>
-                                    );
-                                    
-                                })}
-                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-sm dark:bg-blue-200 dark:text-blue-800 ms-3">{product.calificacion}.0</span>
-                            </div>
-
-                            <div class=" flex items-center justify-between">
-                                <span class="text-[20px] sm:text-[20px] lg:text-[25px] font-bold text-gray-900 dark:text-white">
-                                    ₡{Math.round(product.precio)} {/* redondear al más cercano */ }
-                                </span>
-                                <button class="text-white bg-blue-800 hover:scale-120 hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-2 py-1 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                                    <ShoppingCart/>
-                                </button>
-
-                            </div>
-                        </div>  
-                    </div>
-                ))}         
-            </div>
-
+      {/* 🔍 Filtros */}
+      <div className="flex flex-col md:flex-row items-center justify-between px-6 md:px-10 gap-4 pb-8">
+        <input
+          type="text"
+          placeholder="Buscar productos..."
+          value={SearchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          className="w-full md:w-1/2 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        />
+        <div className="flex items-center gap-3">
+          <label className="text-gray-800 dark:text-gray-200 text-sm">
+            Filtrar por calificación:
+          </label>
+          <select
+            value={RatingFilter}
+            onChange={(e) => setRatingFilter(parseInt(e.target.value))}
+            className="px-3 py-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            <option value={0}>Todas</option>
+            {[...Array(totalStars)].map((_, i) => (
+              <option key={i + 1} value={i + 1}>
+                {i + 1} ⭐ {i + 1 === 1 ? "estrella" : "estrellas"}
+              </option>
+            ))}
+          </select>
         </div>
+      </div>
+
+      {/* 🔹 Productos */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-10">
+        {filteredProducts.map((product, index) => (
+          <ProductCard
+            key={index}
+            product={product}
+            totalStars={totalStars}
+            DefaultProductImage={DefaultProductImage}
+          />
+        ))}
+      </div>
+
+      <style>{`
+        /* 🔁 Movimiento marquee */
+        @keyframes marquee {
+          0% { transform: translateX(100%); }
+          100% { transform: translateX(-100%); }
+        }
+        .animate-marquee {
+          display: inline-block;
+          min-width: 100%;
+          animation: marquee 10s linear infinite;
+        }
+
+        /* ✨ Animación de entrada visible SIEMPRE */
+        @keyframes fadeUp {
+          0% { opacity: 0; transform: translateY(25px) scale(0.98); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-fadeUp {
+          animation: fadeUp 0.6s ease-out forwards;
+        }
+      `}</style>
+    </div>
+  );
+}
+
+function ProductCard({ product, totalStars, DefaultProductImage }) {
+  const titleRef = useRef(null);
+  const cardRef = useRef(null);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const [animationKey, setAnimationKey] = useState(0); // 🔁 Para reiniciar animación
+
+  // Detectar si el título se desborda
+  useEffect(() => {
+    const el = titleRef.current;
+    if (el && el.scrollWidth > el.clientWidth) setIsOverflowing(true);
+    else setIsOverflowing(false);
+  }, [product.nombre]);
+
+  // 🔁 Reinicia animación cada vez que el card entra al viewport
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // fuerza reinicio de animación cambiando la key
+            setAnimationKey((prev) => prev + 1);
+          }
+        });
+      },
+      { threshold: 0.25 }
     );
+    const card = cardRef.current;
+    if (card) observer.observe(card);
+    return () => card && observer.unobserve(card);
+  }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      key={animationKey} // 🔁 reinicia animación cada vez que entra
+      className="flex flex-col items-center justify-center w-full max-w-sm mx-auto group animate-fadeUp"
+    >
+      {/* Imagen */}
+      <div
+        className="w-full h-64 bg-gray-300 bg-center bg-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
+        style={{
+          backgroundImage: `url(${product.referenciaIMG || DefaultProductImage})`,
+        }}
+      ></div>
+
+      {/* Card */}
+      <div className="w-[90%] -mt-15 overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800 transition-all duration-300 group-hover:-translate-y-1">
+        <div
+          ref={titleRef}
+          className={`relative overflow-hidden whitespace-nowrap py-2 font-bold tracking-wide text-center uppercase text-gray-800 dark:text-white ${
+            isOverflowing ? "animate-marquee" : ""
+          }`}
+        >
+          {product.nombre}
+        </div>
+
+        {/* Calificación */}
+        <div className="flex justify-center items-center gap-1 pb-1">
+          {[...Array(totalStars)].map((_, i) => (
+            <Star
+              key={i}
+              size={16}
+              className={`${
+                i < product.calificacion
+                  ? "text-yellow-400 fill-yellow-400"
+                  : "text-gray-300 dark:text-gray-600"
+              }`}
+            />
+          ))}
+          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 ml-1">
+            {product.calificacion}.0
+          </span>
+        </div>
+
+        {/* Precio y botón */}
+        <div className="flex items-center justify-between px-3 py-2 bg-gray-200 dark:bg-gray-700">
+          <span className="font-bold text-gray-800 dark:text-gray-200">
+            ₡{Math.round(product.precio)}
+          </span>
+          <button className="px-2 py-1 text-xs font-semibold text-white uppercase transition-colors duration-300 transform bg-gray-800 rounded hover:bg-gray-700 dark:hover:bg-gray-600 flex items-center gap-1">
+            <ShoppingCart size={14} />
+            Agregar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default Products;
