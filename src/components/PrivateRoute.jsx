@@ -45,8 +45,6 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
               "Se detectó un problema con tu sesión, inicia sesión nuevamente.";
             break;
           default:
-            message =
-              "Ocurrió un error desconocido, por favor inicia sesión nuevamente.";
             break;
         }
 
@@ -83,41 +81,41 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
     return <LoaderSessionV duration={1000} message="Validando acceso..." />;
   }
 
-  console.log(allowedRoles)
-  console.log(groups)
-  console.log(user)
+    console.log(groups);
+    console.log(user);
 
-// Validación de roles por id
-const hasRole =
-  allowedRoles.length === 0 ||
-  (
-    groups?.length > 0 &&
-    user?.groups && // 👈 protegemos contra undefined
-    groups
-      .filter((g) => user.groups.includes(g.id)) // solo grupos del usuario
-      .some((g) => allowedRoles.includes(g.id)) // validación por id
-  );
-
-  
-    console.log(hasRole)
-  if (hasRole) {
-    return element;
+  // Validación de roles por id
+  let hasRole = false;
+    
+  if(groups !== undefined) {
+    hasRole = allowedRoles.length === 0 || (
+        groups?.length > 0 &&
+        user?.groups && // 👈 protegemos contra undefined
+        groups
+          .filter((g) => user.groups.includes(g.id)) // solo grupos del usuario
+          .some((g) => allowedRoles.includes(g.id)) // validación por id
+      );
   }
 
+  // console.log(hasRole);
+  if (hasRole) {
+    return element;
 
-  Swal.fire({
-    icon: "error",
-    iconColor: "red",
-    title: "Acceso denegado",
-    text: "No tienes permisos para acceder a esta sección.",
-    showConfirmButton: false,
-    background: "#233876aa",
-    color: "white",
-    timer: 2500,
-  }).then(() => {
-    setTimeout(() => navigate(-1), 2500);
-  });
-
+  } else {
+    Swal.fire({
+      icon: "error",
+      iconColor: "red",
+      title: "Acceso denegado",
+      text: "No tienes permisos para acceder a esta sección.",
+      showConfirmButton: false,
+      background: "#233876aa",
+      color: "white",
+      timer: 2500,
+    }).then(() => {
+      setTimeout(() => navigate(-1), 2500);
+    });
+  
+  }
   return null;
 };
 

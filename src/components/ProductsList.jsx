@@ -80,6 +80,8 @@ function ProductsList() {
     // Uso
     let filteredProducts = FilterProducts(ProductsData, CategoriesData, SearchValue);
     
+    console.log(filteredProducts);
+    
     return (
     
         <div className="relative w-[95%] md:w-[90%] mx-auto shadow-md sm:rounded-l">

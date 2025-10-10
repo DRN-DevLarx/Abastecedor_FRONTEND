@@ -52,6 +52,7 @@ function Routing() {
           path="/principal"
           element={<PrivateRoute element={<PrincipalPage />} />}
         />
+        
         <Route
           path="/perfil"
           element={<PrivateRoute element={<Profile />} />}
