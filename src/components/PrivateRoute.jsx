@@ -3,16 +3,19 @@ import { useNavigate } from "react-router-dom";
 import LoaderSessionV from "./LoaderSessionV";
 import { GetData } from "../services/ApiServices";
 import Swal from "sweetalert2";
-import { Logout } from "../services/Token/sessionManager";
-import { VerifyAccessToken } from "../services/Token/AuthServices"; // llamada directa
+import { VerifyAccessToken } from "../services/Token/AuthServices";
 
 const PrivateRoute = ({ element, allowedRoles = [] }) => {
   const navigate = useNavigate();
-  const [groups, setGroups] = useState();
-  const [user, setUser] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  
+  const [user, setUser] = useState(null);
+  const [groups, setGroups] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasRole, setHasRole] = useState(null); // null = aún no evaluado
+
+  /* ===========================
+     VALIDAR SESIÓN
+  =========================== */
   useEffect(() => {
     const checkAuth = async () => {
       setIsLoading(true);
@@ -37,9 +40,6 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
               "No pudimos mantener tu sesión activa, por favor inicia sesión nuevamente.";
             break;
           case "INVALID_ACCESS_TOKEN":
-            message =
-              "Ocurrió un error con tu sesión, por favor contacta con soporte.";
-            break;
           case "INVALID_REFRESH_TOKEN":
             message =
               "Se detectó un problema con tu sesión, inicia sesión nuevamente.";
@@ -50,72 +50,90 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
 
         if (message) {
           localStorage.setItem("loginMessage", message);
-          // Logout();
           navigate("/IniciarSesion", { replace: true });
           return;
         }
       }
 
-      // Si no hubo error → guardo el usuario
       setUser(userData);
       setIsLoading(false);
     };
 
     checkAuth();
-  }, []);
+  }, [navigate]);
 
-
+  /* ===========================
+     OBTENER GRUPOS
+  =========================== */
   useEffect(() => {
     const fetchGroups = async () => {
       try {
         const response = await GetData("grupos/");
-        setGroups(response);
+        setGroups(response || []);
       } catch (err) {
         console.error("Error al obtener grupos:", err);
+        setGroups([]);
       }
     };
+
     fetchGroups();
-  }, [navigate]);
+  }, []);
 
-  if (isLoading) {
-    return <LoaderSessionV duration={1000} message="Validando acceso..." />;
-  }
+  /* ===========================
+     VALIDAR ROLES
+  =========================== */
+  useEffect(() => {
+    if (!user || !groups) return;
 
-    console.log(groups);
-    console.log(user);
-
-  // Validación de roles por id
-  let hasRole = false;
-    
-  if(groups !== undefined) {
-    hasRole = allowedRoles.length === 0 || (
-        groups?.length > 0 &&
-        user?.groups && // 👈 protegemos contra undefined
+    const valid =
+      allowedRoles.length === 0 ||
+      (
+        groups.length > 0 &&
+        Array.isArray(user.groups) &&
         groups
-          .filter((g) => user.groups.includes(g.id)) // solo grupos del usuario
-          .some((g) => allowedRoles.includes(g.id)) // validación por id
+          .filter(g => user.groups.includes(g.id))
+          .some(g => allowedRoles.includes(g.id))
       );
+
+    setHasRole(valid);
+  }, [user, groups, allowedRoles]);
+
+  /* ===========================
+     SWAL SOLO CUANDO NO TIENE ROL
+  =========================== */
+  useEffect(() => {
+    if (hasRole === false) {
+      Swal.fire({
+        icon: "error",
+        iconColor: "red",
+        title: "Acceso denegado",
+        text: "No tienes permisos para acceder a esta sección.",
+        showConfirmButton: false,
+        background: "#233876aa",
+        color: "white",
+        timer: 2500,
+      }).then(() => {
+        navigate("/IniciarSesion", { replace: true });
+      });
+    }
+  }, [hasRole, navigate]);
+
+  /* ===========================
+     RENDER
+  =========================== */
+  if (isLoading || hasRole === null) {
+    return (
+      <LoaderSessionV
+        duration={1000}
+        message="Validando acceso..."
+      />
+    );
   }
 
-  // console.log(hasRole);
   if (hasRole) {
     return element;
-
-  } else {
-    Swal.fire({
-      icon: "error",
-      iconColor: "red",
-      title: "Acceso denegado",
-      text: "No tienes permisos para acceder a esta sección.",
-      showConfirmButton: false,
-      background: "#233876aa",
-      color: "white",
-      timer: 2500,
-    }).then(() => {
-      setTimeout(() => navigate(-1), 2500);
-    });
-  
   }
+
   return null;
 };
 

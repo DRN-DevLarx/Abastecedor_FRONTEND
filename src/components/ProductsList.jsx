@@ -29,7 +29,9 @@ function ProductsList() {
         }
     
         try {
-            const decoded = jwtDecode(token);            
+            const decoded = jwtDecode(token);
+            console.log(decoded);
+                     
             setProductsList(decoded.ProductsList)
     
         } catch (error) {

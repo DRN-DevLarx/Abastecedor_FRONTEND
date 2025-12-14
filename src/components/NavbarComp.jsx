@@ -19,11 +19,12 @@ import { GetData, PatchData } from "../services/ApiServices";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import Loader from "./Loader";
-import { LucideAtSign, LucideLogIn, LucideShoppingCart, LucideUserPlus, LucideUserRoundPen } from "lucide-react";
+import { LucideLogIn, LucideShoppingCart, LucideUserRoundPen } from "lucide-react";
 
 
 export default function NavbarComp() {
 
+  
   const navigate = useNavigate()
   const [Autenticate, setAutenticate] = useState(false);
   const [ShowLoader, setShowLoader] = useState(false);
@@ -36,13 +37,14 @@ export default function NavbarComp() {
     userQuery = AutenticatedUserData();
   }
 
+  const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
 
   const [Id, setId] = useState("");
   const [Username, setUsername] = useState("");
   const [UserImage, setUserImage] = useState("");
   const [IsAdmin, setIsAdmin] = useState(false);
 
-  
+
   useEffect(() => {
     if (!userQuery) return; // si no hay token, no ejecutes nada
 
@@ -347,12 +349,13 @@ export default function NavbarComp() {
               
             </Dropdown>
 
-            <div
-            className="flex items-center justify-center bg-gray-500 text-black hover:bg-black hover:text-white w-9 h-9 rounded-full p-1  dark:bg-black dark:text-white dark:hover:bg-gray-500 ">
+            <Link to="/carrito"
+            className="flex items-center justify-center bg-gray-500 text-black hover:bg-black hover:text-white w-9 h-9 rounded-full p-1  dark:bg-gray-500 dark:text-black dark:hover:bg-gray-500 ">
               <LucideShoppingCart />
-                <div 
-                className="absolute top-3 end-1 min-[640px]:end-3 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white dark:text-black bg-[#38664e] dark:bg-[#adb6aa] rounded-full dark:border-gray-900">8</div>
-            </div>
+                <div className="absolute top-3 end-1 min-[640px]:end-3 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-[#38664e]  rounded-full dark:border-gray-900">
+                  3
+                </div>
+            </Link>
                         
           </div>
 

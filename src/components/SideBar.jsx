@@ -73,12 +73,12 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
           <button 
           onClick ={Back}
-          className="hover:scale-150"
+          className="flex gap-1 items-center hover:scale-110"
           >
             <ArrowLeft size={24} />
+          <h1 className="text-2xl font-bold">Administración</h1>
           </button >
 
-          <h1 className="text-2xl font-bold">Administración</h1>
         </div>
 
         <nav className="space-y-3">

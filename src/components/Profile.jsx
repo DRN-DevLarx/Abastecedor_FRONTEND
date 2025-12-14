@@ -633,9 +633,7 @@ function Profile() {
   
   
   const UpdateWithDifferentEmail = async () => {
-    
-    console.log("Aqui vamoooossss");
-    
+        
     setShowLoader(true);
 
     let NewTheme = NewDarkMode ? "oscuro" : "normal";
@@ -955,12 +953,10 @@ function Profile() {
       <Modal /> 
 
         {/* Header */}
-        <div className="flex items-center mb-6 gap-3">
-          <Link to={-1} className="hover:scale-150">
+        <Link to={-1} className="flex items-center mb-6 gap-1 hover:scale-101">
             <ArrowLeft size={24} />
-          </Link>
-          <h2 className="text-2xl font-bold">Perfil</h2>
-        </div>
+             <h2 className="text-2xl font-bold"> Perfil </h2>
+        </Link>
 
         {Mode != "verify" &&
         <div className="bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] lg:mx-20 p-6 sm:p-10 rounded-xl shadow flex flex-col md:flex-row items-center md:items-start gap-6 relative">

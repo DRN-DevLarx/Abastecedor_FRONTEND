@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { GetData } from "../services/ApiServices";
 import { useNavigate } from "react-router-dom";
 import { ShoppingCart, Star } from "lucide-react";
+import { getCookie, Logout, GenerateToken } from "../services/Token/sessionManager";
 
 function Products() {
+
   const totalStars = 5;
   const [ProductsData, setProductsData] = useState([]);
   const [CategoriesData, setCategoriesData] = useState([]);
@@ -13,8 +15,7 @@ function Products() {
   const DefaultProductImage =
     "https://res.cloudinary.com/dateuzds4/image/upload/v1758619222/x9mu7briwy28vj9od5bu.jpg";
 
-  const navigate = useNavigate();
-
+  
   useEffect(() => {
     const fetchData = async () => {
       const GetProductsData = await GetData("productos/");
@@ -22,6 +23,10 @@ function Products() {
       if (GetProductsData && GetCategoriesData) {
         setProductsData(GetProductsData);
         setCategoriesData(GetCategoriesData);
+
+        
+        console.log(GetProductsData);
+        
       }
     };
     fetchData();
@@ -54,14 +59,14 @@ function Products() {
     SearchValue,
     RatingFilter
   );
-
+  
   return (
     <div className="bg-[#adb6aaa8] dark:bg-[#171731] min-h-screen py-8">
       <h1 className="text-black dark:text-white text-3xl font-semibold pl-10 pb-6">
         Productos disponibles
       </h1>
 
-      {/* 🔍 Filtros */}
+      {/* Filtros */}
       <div className="flex flex-col md:flex-row items-center justify-between px-6 md:px-10 gap-4 pb-8">
         <input
           type="text"
@@ -89,7 +94,7 @@ function Products() {
         </div>
       </div>
 
-      {/* 🔹 Productos */}
+      {/* Productos */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 px-4 md:px-10">
         {filteredProducts.map((product, index) => (
           <ProductCard
@@ -102,7 +107,7 @@ function Products() {
       </div>
 
       <style>{`
-        /* 🔁 Movimiento marquee */
+        /* Movimiento marquee */
         @keyframes marquee {
           0% { transform: translateX(100%); }
           100% { transform: translateX(-100%); }
@@ -113,7 +118,7 @@ function Products() {
           animation: marquee 10s linear infinite;
         }
 
-        /* ✨ Animación de entrada visible SIEMPRE */
+        /* Animación de entrada visible SIEMPRE */
         @keyframes fadeUp {
           0% { opacity: 0; transform: translateY(25px) scale(0.98); }
           100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -127,10 +132,12 @@ function Products() {
 }
 
 function ProductCard({ product, totalStars, DefaultProductImage }) {
+  const navigate = useNavigate();
+
   const titleRef = useRef(null);
   const cardRef = useRef(null);
   const [isOverflowing, setIsOverflowing] = useState(false);
-  const [animationKey, setAnimationKey] = useState(0); // 🔁 Para reiniciar animación
+  const [animationKey, setAnimationKey] = useState(0); // Para reiniciar animación
 
   // Detectar si el título se desborda
   useEffect(() => {
@@ -139,7 +146,7 @@ function ProductCard({ product, totalStars, DefaultProductImage }) {
     else setIsOverflowing(false);
   }, [product.nombre]);
 
-  // 🔁 Reinicia animación cada vez que el card entra al viewport
+  // Reinicia animación cada vez que el card entra al viewport
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -157,19 +164,41 @@ function ProductCard({ product, totalStars, DefaultProductImage }) {
     return () => card && observer.unobserve(card);
   }, []);
 
+  const SeeProductDetail = async (product) => {
+
+    document.cookie = "ProductDetail=; path=/; max-age=0; secure; SameSite=Strict";
+
+    const TOKEN = await GenerateToken({
+      ViewUserAdmin: false, 
+      id: product.id,
+      codigo: product.codigo,
+      calificacion: product.calificacion,
+      nombre: product.nombre,
+      descripcion: product.descripcion,
+      precio: product.precio,
+      imagen: product.referenciaIMG,
+      stock: product.stock,
+    }, "ProductDetail");
+        
+    if(TOKEN) {                
+      navigate("/DetalleProducto")
+    }
+    
+  }  
+
   return (
-    <div
-      ref={cardRef}
-      key={animationKey} // 🔁 reinicia animación cada vez que entra
-      className="flex flex-col items-center justify-center w-full max-w-sm mx-auto group animate-fadeUp"
-    >
+    <div ref={cardRef} key={animationKey} // reinicia animación cada vez que entra
+      className="flex flex-col items-center justify-center w-full max-w-sm mx-auto group animate-fadeUp">
+
       {/* Imagen */}
       <div
+        onClick={() => SeeProductDetail(product)}
         className="w-full h-64 bg-gray-300 bg-center bg-cover rounded-lg shadow-md transition-transform duration-300 group-hover:scale-105"
         style={{
           backgroundImage: `url(${product.referenciaIMG || DefaultProductImage})`,
-        }}
-      ></div>
+        }}>
+
+      </div>
 
       {/* Card */}
       <div className="w-[90%] -mt-15 overflow-hidden bg-white rounded-lg shadow-lg dark:bg-gray-800 transition-all duration-300 group-hover:-translate-y-1">
@@ -203,8 +232,9 @@ function ProductCard({ product, totalStars, DefaultProductImage }) {
         {/* Precio y botón */}
         <div className="flex items-center justify-between px-3 py-2 bg-gray-200 dark:bg-gray-700">
           <span className="font-bold text-gray-800 dark:text-gray-200">
-            ₡{Math.round(product.precio)}
+            {product.precio}
           </span>
+          
           <button className="px-2 py-1 text-xs font-semibold text-white uppercase transition-colors duration-300 transform bg-gray-800 rounded hover:bg-gray-700 dark:hover:bg-gray-600 flex items-center gap-1">
             <ShoppingCart size={14} />
             Agregar

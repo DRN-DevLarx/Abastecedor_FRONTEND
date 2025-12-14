@@ -102,120 +102,139 @@ function Contact() {
   }
    
 
-  return (
-    <div className="min-h-[90vh]  bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern.svg')] dark:bg-[url('https://flowbite.s3.amazonaws.com/docs/jumbotron/hero-pattern-dark.svg')] bg-cover">
-     
-     {ShowLoader && (
-          <Loader/>
-      )}      
+return (
+  <div className="py-10 min-h-[90vh] bg-[#adb6aaa8] dark:bg-[#171731] flex items-center justify-center px-4">
+    
+    {ShowLoader && <Loader />}
 
-      <div>
-        <h1 className='mt-3 text-center text-white text-2xl'> ¿Tienes una queja o consulta?, escribénos y pronto te atenderemos. </h1>
+    <div className="w-full max-w-6xl bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] rounded-xl shadow-lg p-8">
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
 
-        <div className='flex flex-col md:flex-row items-center justify-center gap-8 px-4 py-8'>
-          {/* Formulario */}
-          <form className="w-full md:w-[50%] lg:w-[40%] border-gray rounded-lg shadow-md bg-white dark:bg-transparent p-6">
-            
+        {/* ================= FORMULARIO ================= */}
+        <div>
+          <h2 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">
+            Contáctanos
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            ¿Tienes una queja o consulta?, escribénos y pronto te atenderemos.
+          </p>
+
+          <form className="space-y-5">
+
             {!Autenticate && (
-              <div className="mb-5">
-                <label htmlFor="full_name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                  Nombre y Apellido
+              <div>
+                <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
+                  Nombre completo
                 </label>
                 <input
                   type="text"
-                  id="full_name"
                   value={FullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
-                            dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
-                            dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder="John Alfaro"
-                  required
+                  placeholder="John Doe"
+                  className="w-full rounded-md border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 outline-none dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
             )}
 
             {!Autenticate && (
-
-              <div className="mb-5">
-                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+              <div>
+                <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
                   Correo electrónico
                 </label>
                 <input
                   type="email"
-                  id="email"
                   value={Email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                            focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
-                            dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
-                            dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                  placeholder="nombre@ejemplo.com"
-                  required
+                  placeholder="correo@ejemplo.com"
+                  className="w-full rounded-md border border-gray-300 px-4 py-2 
+                             focus:ring-2 focus:ring-blue-500 outline-none
+                             dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
               </div>
             )}
 
-            <div className="mb-5">
-              <label htmlFor="subject" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            <div>
+              <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
                 Asunto
               </label>
               <input
                 type="text"
-                id="subject"
                 value={Subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                          focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
-                          dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
-                          dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Escribe el asunto"
-                required
+                placeholder="Asunto del mensaje"
+                className="w-full rounded-md border border-gray-300 px-4 py-2 
+                           focus:ring-2 focus:ring-blue-500 outline-none
+                           dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
             </div>
 
-            <div className="mb-5">
-              <label htmlFor="message" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+            <div>
+              <label className="block mb-1 text-sm text-gray-700 dark:text-gray-300">
                 Mensaje
               </label>
               <textarea
-                id="message"
                 rows="4"
                 value={Message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg 
-                          focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 
-                          dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 
-                          dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Escribe tu mensaje aquí.."
-                required
-              ></textarea>
+                placeholder="Escribe tu mensaje..."
+                className="w-full rounded-md border border-gray-300 px-4 py-2 
+                           focus:ring-2 focus:ring-blue-500 outline-none
+                           dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              />
             </div>
 
             <button
               type="button"
               onClick={EnviarConsulta}
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none 
-                        focus:ring-blue-300 font-medium rounded-lg text-sm w-full sm:w-auto px-5 py-2.5 
-                        text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-              Enviar
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white 
+                         font-medium py-2.5 rounded-md transition"
+            >
+              Enviar mensaje
             </button>
+
           </form>
-
-          {/* Imagen */}
-          <img
-            className="w-full md:w-[45%] max-w-md object-contain"
-            src={ContactImage}
-            alt="imagen"
-          />
-
         </div>
 
-      </div>
+        {/* ================= INFO + MAPA ================= */}
+        <div className="space-y-6">
 
+          {/* MAPA */}
+          <div className="w-full h-64 rounded-lg overflow-hidden shadow">
+            <iframe
+              title="Ubicación"
+              className="w-full h-full border-0"
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1629.0317718878473!2d-84.98432383691821!3d10.09713731861686!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f9f89000d474b5f%3A0x7418d983b5fb216d!2sAbastecedor%20Adonai!5e0!3m2!1ses-419!2scr!4v1765662027551!5m2!1ses-419!2scr"
+            ></iframe>
+          </div>
+
+          {/* INFO DE CONTACTO */}
+          <div className="space-y-4 text-gray-700 dark:text-gray-300">
+            <div className="flex items-start gap-3">
+              <span className="text-blue-600">📍</span>
+              <p>San José, Costa Rica</p>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="text-blue-600">📞</span>
+              <p>(+506) 8888-8888</p>
+            </div>
+
+            <div className="flex items-start gap-3">
+              <span className="text-blue-600">✉️</span>
+              <p>contacto@ejemplo.com</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
-  )
+  </div>
+);
+
 }
 
 export default Contact

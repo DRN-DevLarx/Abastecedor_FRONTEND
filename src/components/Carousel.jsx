@@ -3,7 +3,7 @@ import CarouselImage from "../assets/CarouselImage.png";
 import CarouselImage2 from "../assets/logo.png";
 
 // Puedes agregar más imágenes aquí
-const images = [CarouselImage, CarouselImage, CarouselImage];
+const images = [CarouselImage, CarouselImage, CarouselImage, CarouselImage];
 
 function Carousel3D() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -24,7 +24,7 @@ function Carousel3D() {
   };
 
   return (
-    <div className="relative w-full h-[500px] flex items-center justify-center bg-[#adb6aaa8] dark:bg-[#171731] overflow-hidden border-b-2 border-gray-700">
+    <div className="relative w-full h-[500px] flex items-center justify-center bg-[#adb6aaa8] dark:bg-[#171731] overflow-hidden">
       {/* Escenario 3D */}
       <div
         className="relative w-[300px] h-[300px] md:w-[450px] md:h-[450px]"

@@ -1,6 +1,6 @@
 import React from 'react'
 import NavbarComp from '../components/NavbarComp'
-import Products from '../components/Products'
+import Products from '../components/ProductsCards'
 import Suscribe from '../components/Suscribe'
 import Footer from '../components/Footer'
 
