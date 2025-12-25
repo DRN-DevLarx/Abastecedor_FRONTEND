@@ -50,7 +50,7 @@ function Footer() {
             </div>
             <hr className="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
             <div className="sm:flex sm:items-center sm:justify-between">
-                <span className="text-sm text-black sm:text-center dark:text-gray-400">© 2025. Todos los derechos reservados | Web creada por <a href="#" className="hover:underline">DRN-DevLarx</a>
+                <span className="text-sm text-black sm:text-center dark:text-gray-400">© 2025. Todos los derechos reservados | Web creada por <a href="https://drn-devlarx.github.io/Portafolio/" target='_blank' className="text-blue-800 dark:text-blue-400 hover:underline">DRN-DevLarx</a>
                 </span>
                 <div className="flex mt-4 justify-center sm:justify-center sm:mt-0">
                     <a href="#" className="text-gray-500 hover:text-gray-900 dark:hover:text-white">
