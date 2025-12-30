@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getCookie } from "./services/Token/sessionManager";
 import { GetData, PatchData } from "./services/ApiServices";
-import Routing from "./routes/routing";
+import Routing from "./routes/Routing";
 import { AutenticatedUserData } from "./services/Token/AuthServices";
 
 function App() {
