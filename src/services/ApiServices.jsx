@@ -1,6 +1,6 @@
 
-const API_URL = "http://127.0.0.1:8000/api/";
-// const API_URL = "https://cttgghnx-8000.use2.devtunnels.ms/";
+const API_URL = "https://constitutional-madelon-darien-3c893a1a.koyeb.app/api/";
+// const API_URL = "http://127.0.0.1:8000/api/";
 
 // GET
 async function GetData(endpoint) {
