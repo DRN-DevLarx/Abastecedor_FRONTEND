@@ -1,8 +1,11 @@
 import { Cloudinary } from "@cloudinary/url-gen";
 
+const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
 const cloudinary = new Cloudinary({
   cloud: {
-    cloudName: "dateuzds4"
+    cloudName: cloudName
   }
 });
 
@@ -11,10 +14,10 @@ const uploadImage = async (file) => {
   
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", "abastecedor");
+  formData.append("upload_preset", uploadPreset);
   
   try {
-    const response = await fetch(`https://api.cloudinary.com/v1_1/dateuzds4/image/upload`,
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
       {
         method: "POST",
         body: formData,

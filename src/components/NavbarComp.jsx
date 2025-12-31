@@ -11,6 +11,7 @@ import {
   NavbarToggle,
 } from "flowbite-react";
 
+import Default_Image from "../assets/Default_Image.jpg";
 import Logo from "../assets/logo.png";
 import {Link, useNavigate} from "react-router-dom";
 import { getCookie, Logout, GenerateToken } from "../services/Token/sessionManager";
@@ -23,7 +24,6 @@ import { LucideLogIn, LucideShoppingCart, LucideUserRoundPen } from "lucide-reac
 
 
 export default function NavbarComp() {
-
   
   const navigate = useNavigate()
   const [Autenticate, setAutenticate] = useState(false);
@@ -37,7 +37,7 @@ export default function NavbarComp() {
     userQuery = AutenticatedUserData();
   }
 
-  const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
+  const DefaultImage = Default_Image;
 
   const [Id, setId] = useState("");
   const [Username, setUsername] = useState("");

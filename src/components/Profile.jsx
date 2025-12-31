@@ -1,3 +1,4 @@
+import Default_Image from "../assets/Default_Image.jpg";
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { X, ArrowLeft, Bell, BellOff, MoonIcon, Sun, LucideXCircle, LucideTrash } from "lucide-react";
@@ -55,7 +56,7 @@ function Profile() {
   const [NewNotificationsOn, setNewNotificationsOn] = useState(false);
 
 
-  const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
+  const DefaultImage = Default_Image;
   
 
   const [UserImages, setUserImages] = useState([])

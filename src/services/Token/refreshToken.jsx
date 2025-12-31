@@ -1,12 +1,14 @@
 import { getCookie } from "./sessionManager";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export async function refreshAccessToken() {  
   const refresh = getCookie("refresh_token");
 
   if (!refresh) return null;
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
+    const response = await fetch(`${API_URL}token/refresh/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refresh }),

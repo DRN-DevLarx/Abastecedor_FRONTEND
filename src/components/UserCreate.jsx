@@ -1,3 +1,4 @@
+import Default_Image from "../assets/Default_Image.jpg";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
@@ -25,7 +26,7 @@ function UserCreate() {
   const [Phone, setPhone] = useState("");
   const [Address, setAddress] = useState("");
 
-  const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
+  const DefaultImage = Default_Image;
 
   useEffect(() => {
       const fetchData = async () => {

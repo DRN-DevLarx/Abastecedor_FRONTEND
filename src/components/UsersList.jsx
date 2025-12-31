@@ -1,3 +1,4 @@
+import Default_Image from "../assets/Default_Image.jpg";
 import { useState, useEffect } from "react";
 import { GetData } from "../services/ApiServices";
 import { getCookie, GenerateToken } from "../services/Token/sessionManager";
@@ -14,7 +15,7 @@ function UsersList() {
 
     const [SeacrhValue, setSeacrhValue] = useState("");
 
-    const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
+    const DefaultImage = Default_Image;
     const [CurrentIdUser, setCurrentIdUser] = useState( );
     const [CurrentUserImage, setCurrentUserImage] = useState("");
     const [CurrentFirstName, setCurrentFirstName] = useState("");

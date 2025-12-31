@@ -1,3 +1,4 @@
+import Default_Image from "../assets/Default_Image.jpg";
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/SideBar";
 import { Menu } from "lucide-react";
@@ -11,7 +12,7 @@ function DashboardPage() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
-  const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
+  const DefaultImage = Default_Image;
   const [UserName, setUserName] = useState("");
   const [UserImage, setUserImage] = useState("");
 

@@ -1,3 +1,4 @@
+import Default_Image from "../assets/Default_Image.jpg";
 import { useState, useEffect } from "react";
 import { GetData } from "../services/ApiServices";
 import { getCookie } from "../services/Token/sessionManager";
@@ -13,7 +14,7 @@ function ProductsList() {
     const [CategoriesData, setCategoriesData] = useState([]);
 
     const [SearchValue, setSearchValue] = useState("");
-    const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
+    const DefaultImage = Default_Image;
 
     const navigate = useNavigate();
 

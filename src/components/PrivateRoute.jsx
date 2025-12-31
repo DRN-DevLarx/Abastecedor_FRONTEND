@@ -124,7 +124,7 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
   if (isLoading || hasRole === null) {
     return (
       <LoaderSessionV
-        duration={1000}
+        duration={1300}
         message="Validando acceso..."
       />
     );

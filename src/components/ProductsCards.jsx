@@ -1,3 +1,4 @@
+import DefaultProductImg from "../assets/CarouselImage.png";
 import { useState, useEffect, useRef } from "react";
 import { GetData } from "../services/ApiServices";
 import { useNavigate } from "react-router-dom";
@@ -12,10 +13,8 @@ function Products() {
   const [SearchValue, setSearchValue] = useState("");
   const [RatingFilter, setRatingFilter] = useState(0);
 
-  const DefaultProductImage =
-    "https://res.cloudinary.com/dateuzds4/image/upload/v1758619222/x9mu7briwy28vj9od5bu.jpg";
+  const DefaultProductImage = DefaultProductImg;
 
-  
   useEffect(() => {
     const fetchData = async () => {
       const GetProductsData = await GetData("productos/");
