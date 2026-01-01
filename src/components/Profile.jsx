@@ -924,7 +924,6 @@ function Profile() {
         setShowLoader(true)
         try {
           const response = await DeleteData("imagenesUsuarios/", IdImage);
-          console.log(response)
           setShowLoader(false)
 
           if (response) {
