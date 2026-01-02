@@ -430,13 +430,21 @@ export default function NavbarComp() {
 
         : (
           <div className="flex flex-col md:flex-row md:absolute md:mt-0 md:top-5
-          md:justify-center md:w-[63%] md:left-[20%] md:gap-10
+          md:justify-center md:w-[63%] md:left-[20%] md:gap-5 lg:gap-10
           lg:w-[63%]">
 
             <Link
               className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1] min-[640px]:mt-0" 
-              to="/principal"> 
+              to="/"> 
               Inicio
+            </Link>
+
+            <hr className="border-gray-900 dark:border-[#668672c1] min-[640px]:hidden" />
+
+            <Link
+              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1] min-[640px]:mt-0" 
+              to="/principal"> 
+              Principal
             </Link>
 
             <hr className="border-gray-900 dark:border-[#668672c1] min-[640px]:hidden" />
