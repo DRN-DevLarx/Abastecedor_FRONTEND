@@ -66,7 +66,7 @@ function Routing() {
         />
 
         <Route
-          path="/DetalleProducto"
+          path="/DetalleProducto/:id"
           element={<PrivateRoute element={<ProductDetail />} />}
         />
 
