@@ -82,7 +82,7 @@ function DashboardPage() {
               {Role.includes("admin") && "Administrador"}
             </p>
           </div>
-          <img className="w-10 rounded-full border border-gray-600" src={UserImage} alt="user" />
+          <img className="w-10 h-10 rounded-full border border-gray-600" src={UserImage || DefaultImage} alt="user" />
         </div>
       </div>
     </div>
