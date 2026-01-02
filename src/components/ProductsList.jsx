@@ -1,4 +1,4 @@
-import { LucidePlusSquare, Upload, X, Plus, Image as ImageIcon, User, Package, FileText, Trash2, DollarSign, Layers, EyeIcon, LucideXCircle } from 'lucide-react';
+import { LucidePlusSquare, Upload, X, Plus, Image as ImageIcon, User, Package, FileText, Trash2, DollarSign, Layers, EyeIcon, LucideXCircle, Search } from 'lucide-react';
 
 import Loader from "./Loader"
 import Alert, { showAlert } from "./Alert";
@@ -24,15 +24,15 @@ function ProductsList() {
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-    codigo: '',
-    nombre: '',
-    precio: 0,
-    stock: 0,
-    calificacion: 0,
-    descripcion: '',
-    referenciaIMG: '',
-    categoria: '',
-    proveedor: ''
+        codigo: '',
+        nombre: '',
+        precio: 0,
+        stock: 0,
+        calificacion: 0,
+        descripcion: '',
+        referenciaIMG: '',
+        categoria: '',
+        proveedor: ''
     });
 
     const [mostrarGaleria, setMostrarGaleria] = useState(false);
@@ -149,6 +149,7 @@ function ProductsList() {
 
     const removeImage = (id) => {
         setImagenes(prev => prev.filter(img => img.id !== id));
+        
         if (imagenPrincipal === id) {
         const remaining = imagenes.filter(img => img.id !== id);
         setImagenPrincipal(remaining.length > 0 ? remaining[0].id : null);
@@ -159,145 +160,9 @@ function ProductsList() {
         setImagenPrincipal(id);
     };
 
-    const handleSubmit = async () => {
-
-        const regex = {
-            codigo: /^[A-Z0-9\-]{3,15}$/,               // opcional
-            nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{3,100}$/, // obligatorio
-            precio: /^\d{1,6}(\.\d{1,2})?$/,            // obligatorio
-            stock: /^\d+$/,                             // obligatorio
-            calificacion: /^[0-5]$/,                    // obligatorio
-            descripcion: /^[\s\S]{0,500}$/              // opcional
-        };
-              
-        // Campos obligatorios básicos
-        if (imagenes.length === 0) {
-            showAlert("info", "Sin imágenes", "Por favor agregue al menos una imagen del producto.");
-            return;
-        }
-
-        if (!formData.nombre || !formData.precio) {
-            showAlert("info", "Campos incompletos", "Por favor complete los campos obligatorios.");
-            return;
-        }
-
-        // Código (opcional)
-        const codigo = String(formData.codigo ?? "");
-
-        if (codigo.length > 0 && (codigo.length < 3 || codigo.length > 15)) {
-            showAlert("info", "Código inválido", "El código del producto debe ser vacío o tener de 3 a 15 caracteres.");
-            return;
-        }
-
-        if (codigo.length === 0) {
-            formData.codigo = PlacehCode;
-        }
-
-        // Nombre
-        const nombre = formData.nombre.trim();
-
-        if (nombre.length < 3) {
-            showAlert("info", "Nombre inválido","El nombre del producto debe tener al menos 3 caracteres.");
-            return;
-        }
-
-        if (nombre.length > 100) {
-            showAlert("info", "Nombre inválido", "El nombre del producto debe tener máximo 100 caracteres.");
-            return;
-        }
-
-        // Precio
-        const precio = String(formData.precio);
-
-        if (!regex.precio.test(precio)) {
-            showAlert("info", "Precio inválido", "Ejemplo válido: 2000 o 900000.00");
-            return;
-        }
-
-        // Stock
-        const stock = String(formData.stock);
-
-        if (!regex.stock.test(stock)) {
-            showAlert("info", "Stock inválido", "El stock debe ser mayor a 0.");
-            return;
-        }
-
-        // Categoría
-        if (formData.categoria === "") {
-            showAlert("info", "Categoría no seleccionada", "Por favor selecciona una categoría.");
-            return;
-        }
-
-        // Proveedor
-        if (formData.proveedor === "") {
-            showAlert("info", "Proveedor no seleccionado", "Por favor selecciona un proveedor.");
-            return;
-        }
-        
-
-        Swal.fire({
-            title: "Subiendo imágenes",
-            html: `<b>Subiendo imagen 1 / ${imagenes.length}</b>`,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            showConfirmButton: false,
-
-            didOpen: () => Swal.showLoading()
-        });
-
-        try {
-            const uploadedImages = [];
-
-            for (let i = 0; i < imagenes.length; i++) {
-                Swal.update({
-                    html: `<b>Subiendo imagen ${i + 1} / ${imagenes.length}</b>`
-                });
-
-                const file = imagenes[i].file;
-                
-                const uploadedUrl = await cloudDinaryServices.uploadImage(file);
-
-                uploadedImages.push(uploadedUrl);
-            }
-
-            Swal.fire({
-                icon: "success",
-                title: "¡Listo!",
-                text: "Imágenes subidas correctamente",
-                timer: 1500,
-                showConfirmButton: false
-            });
-
-        } catch (error) {
-            console.error(error);
-            showAlert("error", "Error", "No se pudieron subir las imágenes");
-        }
-
-        
-        setShowLoader(true)
-       
-        // const response = await PostData("productos/", formData)
-        const response = 200;
-        
-        setShowLoader(false)
-        setAddProductActive(false)
-
-        console.log(response);
-        
-        if (response === 200 || response === 201) {
-            setProductsData(prev => [...prev, formData]);
-            showAlert("success", "Éxito", "Producto agregado correctamente.");
-        } else {
-            showAlert("error", "Error", "No se pudo agregar el producto. Intente nuevamente.");
-        }
-    };
-
     const SeeProductDetail = async (id) => {
 
-        console.log(id);
-        document.cookie = "ProductId=; path=/; max-age=0; secure; SameSite=Strict";
-        navigate(`/DetalleProducto/${id}`);
-        
+        navigate(`/DetalleProducto/${id}`);        
     }  
 
     const ProductDelete = async (id) => {
@@ -323,8 +188,6 @@ function ProductsList() {
         if (Delete === true) {
             setShowLoader(true)
             const responseDelete = await DeleteData("productos/", id)
-            // const responseDelete = 200;
-            console.log(responseDelete);
             
             setShowLoader(false)
             if (responseDelete.status === 204 || responseDelete.status === 201) {
@@ -338,6 +201,206 @@ function ProductsList() {
         }
 
     }
+
+    const ValidateFields = () => {
+
+        const regex = {
+            codigo: /^[A-Z0-9\-]{3,15}$/,               // opcional
+            nombre: /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]{3,100}$/, // obligatorio
+            precio: /^\d{1,6}(\.\d{1,2})?$/,            // obligatorio
+            stock: /^\d+$/,                             // obligatorio
+            calificacion: /^[0-5]$/,                    // obligatorio
+            descripcion: /^[\s\S]{0,500}$/              // opcional
+        };
+              
+        // Campos obligatorios básicos
+        if (imagenes.length === 0) {
+            showAlert("info", "Sin imágenes", "Por favor agregue al menos una imagen del producto.");
+            return false;
+        }
+
+        if (!formData.nombre || !formData.precio) {
+            showAlert("info", "Campos incompletos", "Por favor complete los campos obligatorios.");
+            return false;
+        }
+
+        // Código (opcional)
+        const codigo = String(formData.codigo ?? "");
+
+        if (codigo.length > 0 && (codigo.length < 3 || codigo.length > 15)) {
+            showAlert("info", "Código inválido", "El código del producto debe ser vacío o tener de 3 a 15 caracteres.");
+            return false;
+        }
+
+        if (codigo.length === 0) {
+            formData.codigo = PlacehCode;
+        }
+
+        // Nombre
+        const nombre = formData.nombre.trim();
+
+        if (nombre.length < 3) {
+            showAlert("info", "Nombre inválido","El nombre del producto debe tener al menos 3 caracteres.");
+            return false;
+        }
+
+        if (nombre.length > 100) {
+            showAlert("info", "Nombre inválido", "El nombre del producto debe tener máximo 100 caracteres.");
+            return false;
+        }
+
+        // Precio
+        const precio = String(formData.precio);
+
+        if (!regex.precio.test(precio)) {
+            showAlert("info", "Precio inválido", "Ejemplo válido: 2000 o 900000.00");
+            return false;
+        }
+
+        // Stock
+        const stock = String(formData.stock);
+
+        if (!regex.stock.test(stock)) {
+            showAlert("info", "Stock inválido", "El stock debe ser mayor a 0.");
+            return false;
+        }
+
+        // Categoría
+        if (formData.categoria === "") {
+            showAlert("info", "Categoría no seleccionada", "Por favor selecciona una categoría.");
+            return false;
+        }
+
+        // Proveedor
+        if (formData.proveedor === "") {
+            showAlert("info", "Proveedor no seleccionado", "Por favor selecciona un proveedor.");
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleCreateProduct = async () => {
+        /* ===============================
+            VALIDACIONES
+        ================================*/
+        if (!ValidateFields()) return;
+
+        try {
+            /* ===============================
+                SUBIR IMÁGENES (Cloudinary)
+            ================================*/
+            Swal.fire({
+                title: "Subiendo imágenes",
+                html: `<b>Subiendo imagen 1 / ${imagenes.length}</b>`,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                background: 'rgba(80, 80, 80, 0.75)', // gris translúcido
+                color: "white",
+                didOpen: () => Swal.showLoading()
+            });
+
+            const imageUrls = [];
+
+            for (let i = 0; i < imagenes.length; i++) {
+                Swal.update({
+                    html: `<b>Subiendo imagen ${i + 1} / ${imagenes.length}</b>`,
+                });
+
+                Swal.showLoading();
+
+                const file = imagenes[i].file;
+
+                const url = await cloudDinaryServices.uploadImage(file);
+
+                imageUrls.push(url);
+            }
+
+            /* ===============================
+                CREAR PRODUCTO (FormData)
+            ================================*/
+            if(imageUrls.length === 0) return
+
+            const payload = {
+                ...formData,
+                referenciaIMG: imageUrls[0]
+            };
+
+            Swal.update({
+                title: "Creando producto",
+                html: "<b>Guardando información del producto...</b>"
+            });
+
+            Swal.showLoading();
+
+            const productResponse = await PostData("productos/", payload);
+            const productId = productResponse.data.id;
+
+            
+            if (!productId) throw new Error("Producto no creado");
+
+            /* ===============================
+                GUARDAR IMÁGENES EN DB
+            ================================*/
+            Swal.update({
+                title: "Finalizando",
+                html: "<b>Guardando imágenes del producto...</b>"
+            });
+
+            Swal.showLoading();
+
+            let AllImagesSaved = true;
+
+            for (const img of imageUrls) {
+                const responseProdImg = await PostData("imagenesProductos/", {
+                    producto: productId,
+                    imagen: img
+                });
+
+                if(responseProdImg.status !== 200 && responseProdImg.status !== 201 && responseProdImg.status !== 204) {
+                    AllImagesSaved = false;
+                    break;
+                }
+            }
+
+            if(AllImagesSaved) {
+                Swal.close();
+
+                /* ===============================
+                    ÉXITO
+                ================================*/
+    
+                showAlert("success", "¡Éxito!", "Producto agregado correctamente");
+    
+                setAddProductActive(false)
+    
+                //Limpiar formulario
+                setImagenes([])
+    
+                setFormData({
+                    codigo: '',
+                    nombre: '',
+                    precio: 0,
+                    stock: 0,
+                    calificacion: 0,
+                    descripcion: '',
+                    referenciaIMG: '',
+                    categoria: '',
+                    proveedor: ''
+                });
+    
+                // Actualizar la lista de productos
+                setProductsData(prev => ([...prev, productResponse.data]));
+            }
+
+
+        } catch (error) {
+            console.error(error);
+
+            showAlert("error", "Error", "Ocurrió un error al agregar el producto");
+        }
+    };
 
     return (
         <div className="w-[100%] pb-10  min-h-[100vh] bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F]">
@@ -354,9 +417,7 @@ function ProductsList() {
                     <div className="flex gap-3 relative w-full lg:w-[80%] pr-0 md:pr-2">
                         <div className="w-[100%] md:w-[90%] mx-auto">
                             <div className="absolute inset-y-0 rtl:inset-r-0 start-[0%] flex items-center ps-3 pointer-events-none">
-                                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                                </svg>
+                                <Search size={18}/>
                             </div>
                             <input value={SearchValue} onChange={(e) => setSearchValue(e.target.value)} type="text" id="table-search-users" className="w-full block pt-2 ps-10 text-sm text-white placeholder-gray-100 border border-gray-300 rounded-lg bg-gray-400 focus:ring-[#38664e] focus:border-[#38664e] dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-[#38664e] dark:focus:border-[#38664e]" placeholder="Buscar producto"/>
                         </div>
@@ -369,13 +430,13 @@ function ProductsList() {
                 </div>
     
                 <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs text-gray-100 uppercase bg-[#38664e]">
+                    <thead className="text-xs text-gray-100 uppercase bg-[#3f763081] backdrop-blur-md ">
                         <tr>
-                            <th className="px-3 py-3">Código</th>
-                            <th className="px-3 py-3">Nombre</th>
-                            <th className="px-3 py-3">Precio</th>
-                            <th className="px-3 py-3">Stock</th>
-                            <th className="px-3 py-3 text-center">Acciones</th>
+                            <th className="px-2 py-3">Código</th>
+                            <th className="px-2 py-3">Nombre</th>
+                            <th className="px-2 py-3">Precio</th>
+                            <th className="px-2 py-3">Stock</th>
+                            <th className="px-2 py-3 text-center">Acciones</th>
                             {/* <th className="px-3 py-3">Categoría</th> */}
                         </tr>
                     </thead>
@@ -389,11 +450,11 @@ function ProductsList() {
                                     key={index} 
                                     className="bg-transparent dark:border-gray-700 border-gray-300 border-b-1 hover:bg-gray-400 dark:hover:bg-gray-600 hover:scale-101"
                                 >
-                                    <td className="px-3 py-4">{product.codigo || "-"}</td>
-                                    <td className="px-3 py-4">{product.nombre}</td>
-                                    <td className="px-3 py-4">₡{product.precio}</td>
-                                    <td className="px-3 py-4">{product.stock}</td>
-                                    <td className="px-3 py-4 flex justify-center">
+                                    <td className="px-2 py-2">{product.codigo || "-"}</td>
+                                    <td className="px-2 py-2">{product.nombre}</td>
+                                    <td className="px-2 py-2">₡{product.precio}</td>
+                                    <td className="px-2 py-2">{product.stock}</td>
+                                    <td className="px-2 py-2 flex justify-center">
 
                                         <button onClick={() => SeeProductDetail(product.id)} className="flex gap-1 items-center justify-center text-white bg-[#0191ff60] hover:bg-[#0191ff] focus:ring-2 focus:outline-none focus:ring-[#0191ff] font-medium rounded-lg text-sm px-3 py-2 text-center">
                                             <EyeIcon size={18}/>
@@ -639,7 +700,7 @@ function ProductsList() {
                             </button>
                             <button
                                 type="button"
-                                onClick={handleSubmit}
+                                onClick={handleCreateProduct}
                                 className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-2xl font-medium transition-all shadow-lg hover:shadow-emerald-500/50 flex items-center justify-center gap-2"
                             >
                                 <Plus size={20} />
@@ -657,8 +718,8 @@ function ProductsList() {
 
             {/* Modal de Galería */}
             {mostrarGaleria && (
-                <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+                <div className="fixed inset-0 z-[60] backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-gray-400/40 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
                     
                     {/* Header del modal */}
                     <div className="flex items-center justify-between p-6 border-b border-white/10">
