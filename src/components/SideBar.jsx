@@ -70,7 +70,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
       {/* Sidebar */}
       <aside
-        className={`bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] fixed inset-y-0 left-0 text-white w-64 p-4 transform lg:translate-x-0 transition-transform duration-300 z-50 ${
+        className={`bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] fixed inset-y-0 left-0 text-white w-64 p-4 transform lg:translate-x-0 transition-transform duration-300 z-30 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
