@@ -1,14 +1,13 @@
-import { LucidePlusSquare, Upload, X, Plus, Star, ArrowLeft, Delete, Trash, Trash2, PlusCircleIcon, Watch, EyeIcon } from 'lucide-react';
+import { LucidePlusSquare, Upload, X, Plus, Image as ImageIcon, User, Package, FileText, Trash2, DollarSign, Layers, EyeIcon, LucideXCircle } from 'lucide-react';
+
 import Loader from "./Loader"
 import Alert, { showAlert } from "./Alert";
-import { useState, useEffect } from "react";
-import { DeleteData, GetData, PostData } from "../services/ApiServices";
-import { getCookie } from "../services/Token/sessionManager";
-import { jwtDecode } from "jwt-decode";
-import { AutenticatedUserData } from "../services/Token/AuthServices";
-import { useNavigate } from "react-router-dom";
-
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { DeleteData, GetData, PostData } from "../services/ApiServices";
+import cloudDinaryServices from '../services/cloudDinaryServices';
+
 
 function ProductsList() {
 
@@ -23,6 +22,25 @@ function ProductsList() {
     const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
 
     const navigate = useNavigate();
+
+    const [formData, setFormData] = useState({
+    codigo: '',
+    nombre: '',
+    precio: 0,
+    stock: 0,
+    calificacion: 0,
+    descripcion: '',
+    referenciaIMG: '',
+    categoria: '',
+    proveedor: ''
+    });
+
+    const [mostrarGaleria, setMostrarGaleria] = useState(false);
+    const [imagenes, setImagenes] = useState([]);
+    const [imagenPrincipal, setImagenPrincipal] = useState(null);
+    const [AddProductActive, setAddProductActive] = useState(false);
+
+    const [PlacehCode, setPlacehCode] = useState("");
 
     useEffect(() => {
     
@@ -82,99 +100,63 @@ function ProductsList() {
     // Uso
     let filteredProducts = FilterProducts(ProductsData, CategoriesData, SearchValue);
     
-    // console.log(ProductsData);
-
-    // console.log(filteredProducts);
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    const [formData, setFormData] = useState({
-    codigo: '',
-    nombre: '',
-    precio: 0,
-    stock: 0,
-    calificacion: 0,
-    descripcion: '',
-    referenciaIMG: '',
-    categoria: '',
-    proveedor: ''
-    });
-
-    const [imagenes, setImagenes] = useState([]);
-    const [imagenPrincipal, setImagenPrincipal] = useState(null);
-    const [AddProductActive, setAddProductActive] = useState(false);
-
-    const [PlacehCode, setPlacehCode] = useState("");
 
     const handleClose = () => {
     setAddProductActive(false)
     };
 
+
     const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-        ...prev,
-        [name]: value
-    }));
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleCalificacionClick = (rating) => {
-    setFormData(prev => ({
-        ...prev,
-        calificacion: rating
-    }));
-    };
+    // const handleCalificacionClick = (rating) => {
+    // setFormData(prev => ({
+    //     ...prev,
+    //     calificacion: rating
+    // }));
+    // };
 
     const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    const newImages = files.map(file => ({
-        id: Date.now() + Math.random(),
-        url: URL.createObjectURL(file),
-        file: file
-    }));
-    setImagenes(prev => [...prev, ...newImages]);
-
-    if (!imagenPrincipal && newImages.length > 0) {
-        setImagenPrincipal(newImages[0].id);
-        setFormData(prev => ({
-        ...prev,
-        referenciaIMG: newImages[0].url
+        const files = Array.from(e.target.files);
+        
+        // Calcular cuántas imágenes se pueden agregar (límite de 5)
+        const espacioDisponible = 5 - imagenes.length;
+        const archivosPermitidos = files.slice(0, espacioDisponible);
+        
+        if (files.length > espacioDisponible) {
+        // alert(`Solo puedes subir ${espacioDisponible} imagen(es) más. Límite: 5 imágenes.`);
+        showAlert("info", "Límite de imágenes", `Solo puedes subir 5 imágenes por producto`);
+        }
+        
+        const newImages = archivosPermitidos.map(file => ({
+            id: Date.now() + Math.random(),
+            url: URL.createObjectURL(file),
+            file: file
         }));
-    }
+        
+        setImagenes(prev => [...prev, ...newImages]);
+
+        if (!imagenPrincipal && newImages.length > 0) {
+            setImagenPrincipal(newImages[0].id);
+            setFormData(prev => ({
+                ...prev,
+                referenciaIMG: newImages[0].url
+            }));
+        }
     };
 
     const removeImage = (id) => {
-    setImagenes(prev => prev.filter(img => img.id !== id));
-    if (imagenPrincipal === id) {
-        const newPrincipal = imagenes.find(img => img.id !== id);
-        setImagenPrincipal(newPrincipal?.id || null);
-        setFormData(prev => ({
-        ...prev,
-        referenciaIMG: newPrincipal?.url || ''
-        }));
-    }
+        setImagenes(prev => prev.filter(img => img.id !== id));
+        if (imagenPrincipal === id) {
+        const remaining = imagenes.filter(img => img.id !== id);
+        setImagenPrincipal(remaining.length > 0 ? remaining[0].id : null);
+        }
     };
 
     const setAsPrincipal = (id) => {
-    setImagenPrincipal(id);
-    const imagen = imagenes.find(img => img.id === id);
-    setFormData(prev => ({
-        ...prev,
-        referenciaIMG: imagen?.url || ''
-    }));
+        setImagenPrincipal(id);
     };
 
     const handleSubmit = async () => {
@@ -187,8 +169,13 @@ function ProductsList() {
             calificacion: /^[0-5]$/,                    // obligatorio
             descripcion: /^[\s\S]{0,500}$/              // opcional
         };
-                
+              
         // Campos obligatorios básicos
+        if (imagenes.length === 0) {
+            showAlert("info", "Sin imágenes", "Por favor agregue al menos una imagen del producto.");
+            return;
+        }
+
         if (!formData.nombre || !formData.precio) {
             showAlert("info", "Campos incompletos", "Por favor complete los campos obligatorios.");
             return;
@@ -247,17 +234,57 @@ function ProductsList() {
             return;
         }
         
+
+        Swal.fire({
+            title: "Subiendo imágenes",
+            html: `<b>Subiendo imagen 1 / ${imagenes.length}</b>`,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const uploadedImages = [];
+
+            for (let i = 0; i < imagenes.length; i++) {
+                Swal.update({
+                    html: `<b>Subiendo imagen ${i + 1} / ${imagenes.length}</b>`
+                });
+
+                const file = imagenes[i].file;
+                
+                const uploadedUrl = await cloudDinaryServices.uploadImage(file);
+
+                uploadedImages.push(uploadedUrl);
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: "¡Listo!",
+                text: "Imágenes subidas correctamente",
+                timer: 1500,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error(error);
+            showAlert("error", "Error", "No se pudieron subir las imágenes");
+        }
+
         
         setShowLoader(true)
        
-        const response = await PostData("productos/", formData)
+        // const response = await PostData("productos/", formData)
+        const response = 200;
         
         setShowLoader(false)
         setAddProductActive(false)
 
         console.log(response);
         
-        if (response.status === 200 || response.status === 201) {
+        if (response === 200 || response === 201) {
             setProductsData(prev => [...prev, formData]);
             showAlert("success", "Éxito", "Producto agregado correctamente.");
         } else {
@@ -312,25 +339,17 @@ function ProductsList() {
 
     }
 
-
-
-
-
-
-
-
-
     return (
-        <div className="w-[100%] pb-10  min-h-[100vh] bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F]">
+        <div className="w-[100%] pb-10  min-h-[100vh] bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F]">
             {ShowLoader && (
                 <Loader/>
             )}
             <Alert />
             
             <div className="relative w-[95%] md:w-[90%] mx-auto sm:rounded-l">
-                <div className="flex items-center justify-between sm:flex-row flex-wrap space-y-4 sm:space-y-0 py-3 gap-3 bg-transparent">
+                <div className="flex items-center justify-between lg:justify-around sm:flex-row flex-wrap space-y-4 sm:space-y-0 py-3 gap-1 bg-transparent">
 
-                    <h2 className="text-black dark:text-white text-2xl font-bold mt-2 mb-2 md:pl-2"> Productos </h2>
+                    <h2 className="text-black dark:text-white text-2xl font-bold mt-2 mb-2 md:pl-2 text-cente"> Productos </h2>
     
                     <div className="flex gap-3 relative w-full lg:w-[80%] pr-0 md:pr-2">
                         <div className="w-[100%] md:w-[90%] mx-auto">
@@ -378,7 +397,7 @@ function ProductsList() {
 
                                         <button onClick={() => SeeProductDetail(product.id)} className="flex gap-1 items-center justify-center text-white bg-[#0191ff60] hover:bg-[#0191ff] focus:ring-2 focus:outline-none focus:ring-[#0191ff] font-medium rounded-lg text-sm px-3 py-2 text-center">
                                             <EyeIcon size={18}/>
-                                            <span className="hidden md:inline"> Ver más</span>
+                                            <span className="hidden md:inline"> Ver producto </span>
                                         </button>
 
                                         <button onClick={() => ProductDelete(product.id)} className="flex gap-1 items-center justify-center ml-2 text-white bg-[#ff011f89] hover:bg-[#ff011f] focus:ring-2 focus:outline-none focus:ring-[#ff011f] font-medium rounded-lg text-sm px-3 py-0 text-center">
@@ -396,241 +415,366 @@ function ProductsList() {
             </div>
 
             {AddProductActive && (
-                <div className="fixed inset-0 z-50 flex md:items-center justify-center backdrop-blur-sm bg-black/30">
-                    <div className="bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F]  rounded-lg shadow-lg relative  w-full md:w-[70%] lg:w-[60%] xl:w-[50%] h-[100vh] md:h-[90vh] overflow-y-auto pb-2">
-                    {/* Botón X en la esquina superior derecha */}
-                    <button
-                        onClick={handleClose}
-                        className="absolute top-2 right-4 z-10 text-white hover transition-colors p-2 hover:bg-neutral-100 rounded-full"
-                    >
-                        <X size={30} />
-                    </button>
+                <div className="fixed inset-0 z-40 bg-[#83917f7c] dark:bg-[#171731] backdrop-blur-md overflow-hidden">
+                    <div className="h-full overflow-y-auto p-5">
+                        <div className="w-full sm:w-[90%] mx-auto">
+                        
+                        {/* Header flotante */}
+                        <div className="relative mb-6">
+                            <div className="rounded-[10px] p-6 sm:p-5 shadow-2xl">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                    <h1 className="text-2xl font-bold text-white mb-1">
+                                        Nuevo Producto
+                                    </h1>
+                                    <p className="text-emerald-200">
+                                        Agrega un nuevo producto al inventario
+                                    </p>
+                                    </div>
+                                    <button
+                                    onClick={handleClose}
+                                    className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-1 rounded-2xl"
+                                    >
+                                    <X size={28} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div className="p-4 border-b border-neutral-200 bg-[#38664e]">
-                        <h1 className="text-xl font-normal text-white pr-10">Agregar Nuevo Producto</h1>
+                        <div className="grid lg:grid-cols-2 gap-6">
+                            
+                            {/* Columna Izquierda - Visual */}
+                            <div className="space-y-3">
+                            
+                            {/* Card de Imágenes */}
+                            <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                                <div className="flex items-center gap-3 mb-5">
+                                    <div className="p-2 bg-emerald-500/20 rounded-2xl">
+                                        <ImageIcon className="w-5 h-5 text-emerald-300" />
+                                    </div>
+                                    <h2 className="text-xl font-semibold text-white">Galería Visual</h2>
+                                </div>
+
+                                <div 
+                                onClick={() => setMostrarGaleria(true)}
+                                className="bg-white/5 border-2 border-dashed border-white/30 rounded-2xl p-8 text-center hover:border-emerald-400/50 hover:bg-white/10 transition-all cursor-pointer"
+                                >
+                                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20 mb-4">
+                                    <Upload className="h-10 w-10 text-emerald-300" />
+                                </div>
+                                <p className="text-white font-medium mb-1">
+                                    {imagenes.length > 0 ? `${imagenes.length} imagen${imagenes.length > 1 ? 'es' : ''} cargada${imagenes.length > 1 ? 's' : ''}` : 'Agregar imágenes del producto'}
+                                </p>
+                                <p className="text-emerald-200 text-sm">
+                                    Haz clic para gestionar la galería
+                                </p>
+                                </div>
+                            </div>
+
+                            {/* Card de Descripción */}
+                            <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                                <div className="flex items-center gap-3 mb-4">
+                                <div className="p-2 bg-purple-500/20 rounded-2xl">
+                                    <FileText className="w-6 h-6 text-purple-300" />
+                                </div>
+                                <h2 className="text-xl font-semibold text-white">Descripción</h2>
+                                </div>
+                                
+                                <textarea
+                                name="descripcion"
+                                value={formData.descripcion}
+                                onChange={handleInputChange}
+                                rows="6"
+                                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-2xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all resize-none text-white placeholder-white/50"
+                                placeholder="Cuenta la historia de este producto..."
+                                ></textarea>
+                                </div>
+                                </div>
+
+                            {/* Columna Derecha - Datos */}
+                            <div className="space-y-3">
+                            
+                            {/* Card de Identificación */}
+                            <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="p-2 bg-blue-500/20 rounded-2xl">
+                                        <Package className="w-6 h-6 text-blue-300" />
+                                    </div>
+                                    <h2 className="text-xl font-semibold text-white">Identificación</h2>
+                                </div>
+
+                                <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                    Código (opcional)
+                                    </label>
+                                    <input
+                                    type="text"
+                                    name="codigo"
+                                    value={formData.codigo}
+                                    onChange={handleInputChange}
+                                    maxLength={15}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                                    placeholder="PROD-001"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                    Nombre del producto *
+                                    </label>
+                                    <input
+                                    type="text"
+                                    name="nombre"
+                                    value={formData.nombre}
+                                    onChange={handleInputChange}
+                                    maxLength={100}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                                    placeholder="1kg de papas"
+                                    />
+                                </div>
+                                </div>
+                            </div>
+
+                            {/* Card de Comercial */}
+                            <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="p-2 bg-yellow-500/20 rounded-2xl">
+                                        <DollarSign className="w-6 h-6 text-yellow-300" />
+                                    </div>
+                                    <h2 className="text-xl font-semibold text-white">Información Comercial</h2>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                    Precio (₡) *
+                                    </label>
+                                    <input
+                                    type="number"
+                                    name="precio"
+                                    value={formData.precio}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                                    placeholder="1000"
+                                    step="0.01"
+                                    min="0"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                    Stock
+                                    </label>
+                                    <input
+                                    type="number"
+                                    name="stock"
+                                    value={formData.stock}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                                    min="0"
+                                    placeholder="0"
+                                    />
+                                </div>
+                                </div>
+                            </div>
+
+                            {/* Card de Clasificación */}
+                            <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                                <div className="flex items-center gap-3 mb-3">
+                                <div className="p-2 bg-pink-500/20 rounded-2xl">
+                                    <Layers className="w-6 h-6 text-pink-300" />
+                                </div>
+                                <h2 className="text-xl font-semibold text-white">Clasificación</h2>
+                                </div>
+
+                                <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                    Categoría
+                                    </label>
+                                    <select
+                                    name="categoria"
+                                    value={formData.categoria}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 bg-white/10 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white cursor-pointer"
+                                    >
+                                    <option className="bg-emerald-600" value="">Seleccionar categoría</option>
+                                    {CategoriesData.map(cat => (
+                                        <option className="bg-emerald-600" key={cat.id} value={cat.id}>{cat.nombre}</option>
+                                    ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                    Proveedor
+                                    </label>
+                                    <select
+                                    name="proveedor"
+                                    value={formData.proveedor}
+                                    onChange={handleInputChange}
+                                    className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white cursor-pointer"
+                                    >
+                                    <option className="bg-emerald-600" value="">Seleccionar proveedor</option>
+                                    {SuppliersData.map(prov => (
+                                        <option className="bg-emerald-600" key={prov.id} value={prov.id}>{prov.nombre}</option>
+                                    ))}
+                                    </select>
+                                </div>
+                                </div>
+                            </div>
+                            </div>
+                        </div>
+
+                        {/* Botones de acción flotantes */}
+                        <div className="mt-3 px-6">
+                            <div className="flex flex-col sm:flex-row justify-end gap-4">
+                            <button
+                                type="button"
+                                onClick={handleClose}
+                                className="px-5 py-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-2xl font-medium transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-2xl font-medium transition-all shadow-lg hover:shadow-emerald-500/50 flex items-center justify-center gap-2"
+                            >
+                                <Plus size={20} />
+                                <span> Agregar Producto</span>
+                            </button>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+
+
+            {/* Modal de Galería */}
+            {mostrarGaleria && (
+                <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-gradient-to-br from-gray-900 to-gray-800 border border-white/20 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+                    
+                    {/* Header del modal */}
+                    <div className="flex items-center justify-between p-6 border-b border-white/10">
+                        <div className="flex items-center gap-3">
+                        <div className="p-3 bg-emerald-500/20 rounded-2xl">
+                            <ImageIcon className="w-6 h-6 text-emerald-300" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-semibold text-white">Gestionar Galería</h3>
+                            <p className="text-sm text-emerald-200">Máximo 5 imágenes</p>
+                        </div>
+                        </div>
+                        <button
+                        onClick={() => setMostrarGaleria(false)}
+                        className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-2 rounded-xl"
+                        >
+                        <X size={24} />
+                        </button>
                     </div>
 
-                    <div className="py-2 px-10 overflow-y-auto">
-                        {/* Imágenes del Producto */}
-                        <div className="mb-6 sm:mb-8">
-                        <h2 className="text-base sm:text-lg font-normal mb-4">Imágenes del Producto</h2>
+                    {/* Contenido del modal */}
+                    <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
                         
-                        <div className="bg-transparent border border-neutral-300 rounded p-6 text-center mb-0">
+                        {/* Input para subir imágenes */}
+                        <div className="mb-6">
+                        <div className="bg-white/5 border-2 border-dashed border-white/30 rounded-2xl p-6 text-center hover:border-emerald-400/50 hover:bg-white/10 transition-all">
                             <input
                             type="file"
-                            id="imageUpload"
+                            id="imageUploadModal"
                             multiple
                             accept="image/*"
                             onChange={handleImageUpload}
                             className="hidden"
+                            disabled={imagenes.length >= 5}
                             />
-                            <label htmlFor="imageUpload" className="cursor-pointer block">
-                            <Upload className="mx-auto h-8 w-8 sm:h-10 sm:w-10 mb-0" />
-                            <p className="text-sm sm:text-base">Subir imágenes</p>
-                            <p className="text-xs sm:text-sm mt-1">PNG, JPG, JPEG</p>
+                            <label 
+                            htmlFor="imageUploadModal" 
+                            className={`${imagenes.length >= 5 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} block`}
+                            >
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/20 mb-3">
+                                <Upload className="h-8 w-8 text-emerald-300" />
+                            </div>
+                            <p className="text-white font-medium mb-1">
+                                {imagenes.length >= 5 ? 'Límite alcanzado (5/5)' : 'Subir más imágenes'}
+                            </p>
+                            <p className="text-emerald-200 text-sm">
+                                {imagenes.length >= 5 ? 'Elimina alguna para agregar más' : `PNG, JPG, JPEG • ${imagenes.length}/5 usadas`}
+                            </p>
                             </label>
                         </div>
+                        </div>
 
-                        {imagenes.length > 0 && (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {/* Grid de imágenes */}
+                        {imagenes.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                             {imagenes.map(img => (
-                                <div key={img.id} className="relative group">
-                                <img 
-                                    src={img.url} 
-                                    alt="Preview" 
-                                    className={`w-full h-24 sm:h-28 object-cover rounded border ${
-                                    imagenPrincipal === img.id 
-                                        ? 'border-neutral-900 border-2' 
-                                        : 'border-neutral-300'
-                                    }`}
+                            <div key={img.id} className="relative">
+                                <div
+                                className={`relative overflow-hidden rounded-xl transition-all ${
+                                    imagenPrincipal === img.id
+                                    ? 'ring-4 ring-emerald-400'
+                                    : 'ring-2 ring-white/20 hover:ring-white/40'
+                                }`}
+                                >
+                                <img
+                                    src={img.url}
+                                    alt="Preview"
+                                    className="w-full h-40 object-cover"
                                 />
+
+                                {/* Overlay opcional */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+
+                                {/* BOTÓN ELIMINAR (SIEMPRE VISIBLE) */}
                                 <button
                                     type="button"
                                     onClick={() => removeImage(img.id)}
-                                    className="absolute top-1 right-1 bg-gray-700 text-neutral-600 rounded-full p-1 shadow opacity-0 group-hover:opacity-100"
+                                    className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg"
                                 >
-                                    <X size={14} />
+                                    <X size={16} />
                                 </button>
+
+                                {/* PRINCIPAL */}
                                 {imagenPrincipal === img.id ? (
-                                    <div className="absolute bottom-1 left-1 bg-neutral-900 text-white text-xs px-2 py-1 rounded">
-                                    Principal
+                                    <div className="absolute bottom-3 left-3 bg-emerald-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-lg">
+                                    ★ Principal
                                     </div>
                                 ) : (
                                     <button
                                     type="button"
                                     onClick={() => setAsPrincipal(img.id)}
-                                    className="absolute bottom-1 left-1 bg-gray-700 text-xs px-2 py-1 rounded shadow opacity-0 group-hover:opacity-100"
+                                    className="absolute bottom-3 left-3 bg-white/90 hover:bg-emerald-500 hover:text-white text-gray-800 text-sm font-medium px-3 py-1.5 rounded-lg shadow-lg"
                                     >
-                                    Marcar
+                                    Marcar principal
                                     </button>
                                 )}
                                 </div>
-                            ))}
                             </div>
+                            ))}
+                        </div>
+                        ) : (
+                        <div className="text-center py-12">
+                            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/5 mb-4">
+                            <ImageIcon className="w-10 h-10 text-white/30" />
+                            </div>
+                            <p className="text-white/60">No hay imágenes todavía</p>
+                            <p className="text-white/40 text-sm mt-1">Sube tu primera imagen arriba</p>
+                        </div>
                         )}
-                        </div>
 
-                        {/* Información Básica */}
-                        <div className="mb-6">
-                        <h2 className="text-base sm:text-lg font-normal mb-4">Información Básica</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                            <label className="block text-sm mb-2">
-                                Código <span className="text-gray-700"> (Opcional )</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="codigo"
-                                value={formData.codigo}
-                                onChange={handleInputChange}
-                                maxLength={15}
-                                className="w-full px-3 py-2 border bg-transparent border-neutral-300 rounded focus:outline-none focus:border-neutral-500"
-                                placeholder={PlacehCode}
-                            />
-                            </div>
-
-                            <div>
-                            <label className="block text-sm mb-2">
-                                Nombre del Producto *
-                            </label>
-                            <input
-                                type="text"
-                                name="nombre"
-                                value={formData.nombre}
-                                onChange={handleInputChange}
-                                maxLength={100}
-                                className="w-full px-3 py-2 border bg-transparent border-neutral-300 rounded focus:outline-none focus:border-neutral-500"
-                                placeholder=" Ej: 1k de papas"
-                            />
-                            </div>
-
-                            <div>
-                            <label className="block text-sm mb-2">
-                                Precio (₡) *
-                            </label>
-                            <input
-                                type="number"
-                                name="precio"
-                                value={formData.precio}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 bg-transparent border border-neutral-300 rounded focus:outline-none focus:border-neutral-500"
-                                placeholder="1000"
-                                step="0.01"
-                                min="0"
-                            />
-                            </div>
-
-                            <div>
-                            <label className="block text-sm mb-2">
-                                Stock
-                            </label>
-                            <input
-                                type="number"
-                                name="stock"
-                                value={formData.stock}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 bg-transparent border border-neutral-300 rounded focus:outline-none focus:border-neutral-500"
-                                min="0"
-                                placeholder="0"
-                            />
-                            </div>
-
-                            <div>
-                            <label className="block text-sm mb-2">
-                                Categoría
-                            </label>
-                            <select
-                                name="categoria"
-                                value={formData.categoria}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 bg-transparent border border-neutral-300 rounded focus:outline-none focus:border-neutral-500"
-                            >
-                                <option className="bg-gray-300 dark:bg-gray-700" value="">Seleccionar</option>
-                                {CategoriesData.map(cat => (
-                                <option className="bg-gray-300 dark:bg-gray-700" key={cat.id} value={cat.id}>{cat.nombre}</option>
-                                ))}
-                            </select>
-                            </div>
-
-                            <div>
-                            <label className="block text-sm mb-2">
-                                Proveedor
-                            </label>
-                            <select
-                                name="proveedor"
-                                value={formData.proveedor}
-                                onChange={handleInputChange}
-                                className="w-full px-3 py-2 bg-transparent border border-neutral-300 rounded focus:outline-none focus:border-neutral-500"
-                            >
-                                <option className="bg-gray-300 dark:bg-gray-700" value="">Seleccionar</option>
-                                {SuppliersData.map(prov => (
-                                <option className="bg-gray-300 dark:bg-gray-700" key={prov.id} value={prov.id}>{prov.nombre}</option>
-                                ))}
-                            </select>
-                            </div>
-                        </div>
-                        </div>
-
-                        {/* Calificación */}
-                        {/* <div className="mb-6 sm:mb-8">
-                        <h2 className="text-base sm:text-lg font-normal mb-4">Calificación</h2>
-                        <div className="flex items-center space-x-1">
-                            {[1, 2, 3, 4, 5].map((rating) => (
-                            <button
-                                key={rating}
-                                type="button"
-                                onClick={() => handleCalificacionClick(rating)}
-                            >
-                                <Star
-                                size={20}
-                                className={`sm:w-6 sm:h-6 ${rating <= formData.calificacion ? 'fill-yellow-400 text-yellow-400' : 'text-neutral-300'}`}
-                                />
-                            </button>
-                            ))}
-                            <span className="ml-3 text-xs sm:text-sm text-neutral-600">
-                            ({formData.calificacion})
-                            </span>
-                        </div>
-                        </div> */}
-
-                        {/* Descripción */}
-                        <div className="mb-6">
-                        <h2 className="text-base sm:text-lg font-normal mb-2">Descripción</h2>
-                        <textarea
-                            name="descripcion"
-                            value={formData.descripcion}
-                            onChange={handleInputChange}
-                            rows="4"
-                            className="w-full px-3 py-2 bg-transparent border border-neutral-300 rounded focus:outline-none focus:border-neutral-500 resize-none"
-                            placeholder="Describe las características del producto..."
-                        ></textarea>
-                        </div>
-
-                        {/* Botones */}
-                        <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-neutral-200">
-                        <button
-                            type="button"
-                            onClick={handleClose}
-                            className="w-full sm:w-auto px-5 py-2 border border-neutral-300 rounded hover:bg-gray-700 order-2 sm:order-1"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleSubmit}
-                            className="w-full sm:w-auto px-5 py-2 bg-[#38664e] text-white rounded hover:bg-[#2aaa68] flex items-center justify-center space-x-2 order-1 sm:order-2"
-                        >
-                            <Plus size={18} />
-                            <span>Agregar Producto</span>
-                        </button>
-                        </div>
                     </div>
                     </div>
                 </div>
             )}
-        </div>
-    
 
+        </div>
     )
 }
 
