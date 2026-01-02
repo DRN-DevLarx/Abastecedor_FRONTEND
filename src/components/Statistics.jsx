@@ -55,17 +55,6 @@ function Statistics() {
         fetchData() 
   }), []
 
-<<<<<<< HEAD
-  const ViewProducts = async () => {
-    const TOKEN = await GenerateToken({ ProductsList: true }, "ProductsCookie");
-
-    if(TOKEN) {
-      navigate("/ListaProductos")
-    }
-  }
-
-=======
->>>>>>> develop
   return (
     <div>
     {/* Content */}
@@ -81,11 +70,7 @@ function Statistics() {
             <h2 className="text-2xl font-bold text-white">{UserTotal}</h2>
           </div>
 
-<<<<<<< HEAD
-          <div onClick={() => ViewProducts()} className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
-=======
           <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
->>>>>>> develop
             <p className="text-black font-bold dark:text-gray-400">Total de productos</p>
             <h2 className="text-2xl font-bold text-white">{ProductsTotal}</h2>
           </div>
