@@ -33,13 +33,9 @@ const dataBar = [
 
 import React, { useState, useEffect } from "react";
 import { GetData } from "../services/ApiServices";
-import { GenerateToken } from "../services/Token/sessionManager";
-import { useNavigate } from "react-router-dom";
-
 
 function Statistics() {
 
-  const navigate = useNavigate()
   const [UserTotal, setUserTotal] = useState(0)
   const [ProductsTotal, setProductsTotal] = useState(0)
 
@@ -59,6 +55,7 @@ function Statistics() {
         fetchData() 
   }), []
 
+<<<<<<< HEAD
   const ViewProducts = async () => {
     const TOKEN = await GenerateToken({ ProductsList: true }, "ProductsCookie");
 
@@ -67,6 +64,8 @@ function Statistics() {
     }
   }
 
+=======
+>>>>>>> develop
   return (
     <div>
     {/* Content */}
@@ -77,12 +76,16 @@ function Statistics() {
         {/* Stats Cards */} 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
 
-          <div onClick={() => navigate("/usuarios")} className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
+          <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
             <p className="text-black font-bold dark:text-gray-400">Total de usuarios</p>
             <h2 className="text-2xl font-bold text-white">{UserTotal}</h2>
           </div>
 
+<<<<<<< HEAD
           <div onClick={() => ViewProducts()} className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
+=======
+          <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
+>>>>>>> develop
             <p className="text-black font-bold dark:text-gray-400">Total de productos</p>
             <h2 className="text-2xl font-bold text-white">{ProductsTotal}</h2>
           </div>
@@ -109,8 +112,6 @@ function Statistics() {
 
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={dataLine} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-
-
               
                 {/* Líneas */}
                 <Line type="monotone" dataKey="venta" stroke="currentColor" strokeWidth={3} className="text-blue-500 dark:text-blue-300" name="Ventas"/>

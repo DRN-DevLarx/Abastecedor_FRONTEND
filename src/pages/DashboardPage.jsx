@@ -63,7 +63,7 @@ function DashboardPage() {
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Header superior */}
-      <div className="fixed top-0 left-0 w-full bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F]  flex justify-between items-center px-5 py-3 z-30">
+      <div className="fixed top-0 left-0 w-full bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F]  flex justify-between items-center px-5 py-3 z-20">
         {/* Botón menú (solo en móvil) */}
         {!sidebarOpen && (
           <button
@@ -82,7 +82,7 @@ function DashboardPage() {
               {Role.includes("admin") && "Administrador"}
             </p>
           </div>
-          <img className="w-10 rounded-full border border-gray-600" src={UserImage} alt="user" />
+          <img className="w-10 h-10 rounded-full border border-gray-600" src={UserImage || DefaultImage} alt="user" />
         </div>
       </div>
     </div>

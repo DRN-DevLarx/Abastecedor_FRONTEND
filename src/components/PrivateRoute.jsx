@@ -121,14 +121,14 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
   /* ===========================
      RENDER
   =========================== */
-  if (isLoading || hasRole === null) {
-    return (
-      <LoaderSessionV
-        duration={1300}
-        message="Validando acceso..."
-      />
-    );
-  }
+  // if (isLoading || hasRole === null) {
+  //   return (
+  //     <LoaderSessionV
+  //       duration={1300}
+  //       message="Validando acceso..."
+  //     />
+  //   );
+  // }
 
   if (hasRole) {
     return element;

@@ -20,7 +20,8 @@ import { GetData, PatchData } from "../services/ApiServices";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import Loader from "./Loader";
-import { LucideLogIn, LucideShoppingCart, LucideUserRoundPen } from "lucide-react";
+import { LogOutIcon, LucideLogIn, LucideShoppingCart, LucideUserRoundPen, Shield, User } from "lucide-react";
+import { Profiler } from "react";
 
 
 export default function NavbarComp() {
@@ -333,18 +334,19 @@ export default function NavbarComp() {
                     </span>
                   </DropdownHeader>
 
-                  <div onClick={ViewProfile}>
-                    <DropdownItem>Perfil</DropdownItem>
+                  <div className="w-full" onClick={ViewProfile}>
+                    <DropdownItem className="flex justify-center gap-1"> Mi Perfil <User size={20}/> </DropdownItem>
                   </div>
 
                   {IsAdmin && (
                     <Link to="/admin">
-                      <DropdownItem>Administrar</DropdownItem>
+                      <DropdownItem className="flex justify-center gap-1"> Administrar <Shield size={20}/> </DropdownItem>
                     </Link>
                   )}
 
                   <DropdownDivider className="bg-gray-900" />
-                  <DropdownItem onClick={CerrarSesion}>Cerrar Sesión</DropdownItem>
+                  <DropdownItem onClick={CerrarSesion} className="flex justify-center gap-1"> Cerrar Sesión <LogOutIcon size={20}/> </DropdownItem>
+
                 </>
               
             </Dropdown>
@@ -375,9 +377,9 @@ export default function NavbarComp() {
               }
             >
                 <div className="flex flex-col w-full">
-                    <DropdownItem onClick={() => navigate("/registro")} className="flex gap-1"> <LucideUserRoundPen size={20}/> Registrarse </DropdownItem>
+                    <DropdownItem onClick={() => navigate("/registro")} className="flex justify-between gap-1"> Registrarse <LucideUserRoundPen size={20}/> </DropdownItem>
 
-                    <DropdownItem onClick={() => navigate("/IniciarSesion")} className="flex gap-1"> <LucideLogIn size={20} /> Iniciar sesión </DropdownItem>
+                    <DropdownItem onClick={() => navigate("/IniciarSesion")} className="flex justify-between gap-1"> Iniciar sesión <LucideLogIn size={20} /> </DropdownItem>
                 </div>
               
             </Dropdown>                        
@@ -430,13 +432,21 @@ export default function NavbarComp() {
 
         : (
           <div className="flex flex-col md:flex-row md:absolute md:mt-0 md:top-5
-          md:justify-center md:w-[63%] md:left-[20%] md:gap-10
+          md:justify-center md:w-[63%] md:left-[20%] md:gap-5 lg:gap-10
           lg:w-[63%]">
 
             <Link
               className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1] min-[640px]:mt-0" 
-              to="/principal"> 
+              to="/"> 
               Inicio
+            </Link>
+
+            <hr className="border-gray-900 dark:border-[#668672c1] min-[640px]:hidden" />
+
+            <Link
+              className="text-[17px] font-bold py-1 px-3 text-center rounded-[5px] hover:scale-110 hover:bg-[#668672c1] min-[640px]:mt-0" 
+              to="/principal"> 
+              Principal
             </Link>
 
             <hr className="border-gray-900 dark:border-[#668672c1] min-[640px]:hidden" />

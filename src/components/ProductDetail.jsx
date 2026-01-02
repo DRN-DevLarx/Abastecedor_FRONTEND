@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, ChevronLeft, ChevronRight, Star, ArrowLeft, ShoppingCart } from 'lucide-react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 
 import { GetData, PostData, PatchData, DeleteUserData, DeleteData } from "../services/ApiServices";
 import { getCookie } from "../services/Token/sessionManager";
 import { jwtDecode } from "jwt-decode";
 
-const ProductDisplay = () => {
+const ProductDetail = () => {
+
+    const { id } = useParams();
+
     const navigate = useNavigate();
     const [isFavorite, setIsFavorite] = useState(false);
     const [quantity, setQuantity] = useState(1);
     const [ViewUserAdmin, setViewUserAdmin] = useState(); 
-    const [ProductId, setProductId] = useState(); 
+
     const [ProductCode, setProductCode] = useState(""); 
     const [ProductQualification, setProductQualification] = useState(""); 
     const [ProductName, setProductName] = useState(""); 
@@ -59,45 +62,58 @@ const ProductDisplay = () => {
     }
   };
 
-  useEffect(() => {
-    
-    const token = getCookie("ProductDetail");    
-    
-    if (!token) {
-      // No hay token → redirigir
-    //   navigate("/principal");
-      console.log("Holaa11");
-      
-      return;
-    }    
 
+
+useEffect(() => {
+
+  const fetchData = async (productId) => {
+    try {
+      const ProductData = await GetData(`productos/${productId}/`);
+
+      if (ProductData) {
+        setProductCode(ProductData.codigo);
+        setProductImage(ProductData.referenciaIMG);
+        setProductName(ProductData.nombre);
+        setProductPrice(ProductData.precio);
+        setProductDescription(ProductData.descripcion);
+        setProductQualification(ProductData.calificacion);
+        setProductStock(ProductData.stock);
+      }
+    } catch (error) {
+      console.error("Error cargando producto");
+      navigate("/principal");
+    }
+  };
+
+  const token = getCookie("ProductId");
+
+  // 🟢 1. Si hay ID en la URL → usarlo
+  if (id) {
+    fetchData(id);
+    return;
+  }
+
+  // 🟡 2. Si no hay ID pero hay token → validarlo
+  if (token) {
     try {
       const decoded = jwtDecode(token);
-      console.log(decoded);
-      
-      
-      setViewUserAdmin(decoded.ViewUserAdmin)
-      
-      setProductId(decoded.ViewUserAdmin)
-      setProductCode(decoded.codigo)
-      setProductQualification(decoded.calificacion)
-      setProductName(decoded.nombre)
-      setProductDescription(decoded.descripcion)
-      setProductPrice(decoded.precio)
-      setProductImage(decoded.imagen)
-      setProductStock(decoded.stock) 
-      
+
+      if (decoded?.id) {
+        fetchData(decoded.id);
+        return;
+      }
     } catch (error) {
-      // Token inválido o modificado → redirigir
-      console.warn("Token inválido:", error.message);
-      navigate("/principal");
-      console.log("Holaa22");
-
-      document.cookie = "UserCookie=; path=/; max-age=0; secure; SameSite=Strict";
-
+      console.warn("Token inválido");
     }
+  }
 
-  }, [navigate]);
+  // 🔴 3. Nada válido → limpiar y redirigir
+  document.cookie = "ProductId=; path=/; max-age=0; SameSite=Strict";
+  navigate("/principal");
+
+}, [id, navigate]);
+
+
 
 
   return (
@@ -383,4 +399,4 @@ const ProductDisplay = () => {
   );
 };
 
-export default ProductDisplay;
+export default ProductDetail;

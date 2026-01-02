@@ -21,11 +21,7 @@ function Products() {
       const GetCategoriesData = await GetData("categorias/");
       if (GetProductsData && GetCategoriesData) {
         setProductsData(GetProductsData);
-        setCategoriesData(GetCategoriesData);
-
-        
-        console.log(GetProductsData);
-        
+        setCategoriesData(GetCategoriesData);        
       }
     };
     fetchData();
@@ -164,26 +160,8 @@ function ProductCard({ product, totalStars, DefaultProductImage }) {
   }, []);
 
   const SeeProductDetail = async (product) => {
-
-    document.cookie = "ProductDetail=; path=/; max-age=0; secure; SameSite=Strict";
-
-    const TOKEN = await GenerateToken({
-      ViewUserAdmin: false, 
-      id: product.id,
-      codigo: product.codigo,
-      calificacion: product.calificacion,
-      nombre: product.nombre,
-      descripcion: product.descripcion,
-      precio: product.precio,
-      imagen: product.referenciaIMG,
-      stock: product.stock,
-    }, "ProductDetail");
-        
-    if(TOKEN) {                
-      navigate("/DetalleProducto")
-    }
-    
-  }  
+      navigate(`/DetalleProducto/${product.id}`);    
+  }
 
   return (
     <div ref={cardRef} key={animationKey} // reinicia animación cada vez que entra
