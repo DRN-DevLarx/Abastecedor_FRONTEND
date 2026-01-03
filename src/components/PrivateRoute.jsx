@@ -47,8 +47,9 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
           default:
             break;
         }
-
+                
         if (message) {
+          document.cookie.split(";").forEach(cookie => document.cookie = cookie.split("=")[0] + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;");
           localStorage.setItem("loginMessage", message);
           navigate("/IniciarSesion", { replace: true });
           return;
