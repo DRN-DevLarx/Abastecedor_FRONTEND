@@ -45,7 +45,7 @@ function ProductsList() {
     useEffect(() => {
     
         const fetchData = async () => {
-            const GetProductsData = await GetData("productos/");
+            const GetProductsData = await GetData("productosAdmin/");
             const GetCategoriesData = await GetData("categorias/");
             const GetSuppliersData = await GetData("proveedores/");
 
@@ -187,7 +187,7 @@ function ProductsList() {
         
         if (Delete === true) {
             setShowLoader(true)
-            const responseDelete = await DeleteData("productos/", id)
+            const responseDelete = await DeleteData("productosAdmin/", id)
             
             setShowLoader(false)
             if (responseDelete.status === 204 || responseDelete.status === 201) {
@@ -334,7 +334,7 @@ function ProductsList() {
 
             Swal.showLoading();
 
-            const productResponse = await PostData("productos/", payload);
+            const productResponse = await PostData("productosAdmin/", payload);
             const productId = productResponse.data.id;
 
             
