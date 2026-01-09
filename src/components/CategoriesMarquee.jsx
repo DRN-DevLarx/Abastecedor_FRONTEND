@@ -3,49 +3,65 @@ import { useEffect, useState } from "react";
 
 function CategoriesMarquee() {
 
-    const [Categories, setCategories] = useState([])
+    const [Categories, setCategories] = useState([]);
 
     useEffect(() => {
-
         const fecthData = async () => {
-            const GetCategories = await GetData("categorias/")
-            
-            setCategories(GetCategories)
-        }
-        fecthData()
+            const GetCategories = await GetData("categorias/");
+            setCategories(GetCategories);
+        };
+        fecthData();
+    }, []);
 
-    }, [])
-    
-  return (
-    <section className="bg-[#adb6aaa8] dark:bg-[#171731] py-3 overflow-hidden">
-        <style>
-            {`
-            @keyframes marquee {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(-50%); }
-            }
+    return (
+        <section className="relative overflow-hidden bg-black dark:bg-[#0a0a1a]">
+            <style>
+                {`
+                @keyframes marquee {
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
+                }
 
-            .animate-marquee {
-                display: flex;
-                width: max-content;
-                animation: marquee 30s linear infinite;
-            }
-            `}
-        </style>
+                @keyframes glow {
+                    0% { filter: hue-rotate(0deg); }
+                    100% { filter: hue-rotate(360deg); }
+                }
 
-            <div className="relative w-full flex items-center">
-                <div className="flex animate-marquee space-x-10 whitespace-nowrap">
-                    
+                .animate-marquee {
+                    display: flex;
+                    width: max-content;
+                    animation: marquee 40s linear infinite;
+                }
+
+                .glow-bar {
+                    animation: glow 6s linear infinite;
+                }
+
+                `}
+            </style>
+
+            {/* Glow background */}
+            <div className="absolute inset-0 blur-3xl opacity-30 glow-bar bg-gradient-to-r from-fuchsia-500 via-cyan-400 to-indigo-500" />
+
+            <div className="relative marquee-wrapper">
+                <div className="flex animate-marquee space-x-10 px-10 whitespace-nowrap">
                     {Categories.map((cat, index) => (
-                        <span key={index} className="text-lg font-medium px-6 py-2 bg-white/70 dark:bg-gray-800 rounded-xl shadow-md text-gray-800 dark:text-gray-200 hover:scale-105 transition-transform cursor-pointer">
+                        <span
+                            key={index}
+                            className="relative px-8 py-3 text-lg font-bold tracking-wide
+                            text-white
+                            transition-all duration-300 cursor-pointer
+                            hover:scale-125
+                            hover:shadow-[0_0_30px_rgba(236,72,153,0.9)]
+                            hover:text-fuchsia-400"
+                        >
                             {cat.nombre}
                         </span>
                     ))}
                 </div>
             </div>
-
         </section>
-  );
+    );
 }
 
 export default CategoriesMarquee;
