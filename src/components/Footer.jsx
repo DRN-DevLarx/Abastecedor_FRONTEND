@@ -9,7 +9,7 @@ function Footer() {
                 <div className="md:flex md:justify-between">
                 <div className="mb-6 md:mb-0">
                     <a href="#" className="flex items-center">
-                        <img src={Logo} className="h-25 me-3" alt="Logo" />
+                        <img src={Logo} className="dark:invert h-25 me-3" alt="Logo" />
                     </a>
                 </div>
                 <div className="grid grid-cols-2 gap-8 sm:gap-10 sm:grid-cols-3 pl-[10%]">
