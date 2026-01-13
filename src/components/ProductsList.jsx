@@ -1,47 +1,57 @@
-import { LucidePlusSquare, Upload, X, Plus, Image as ImageIcon, User, Package, FileText, Trash2, DollarSign, Layers, EyeIcon, LucideXCircle, Search } from 'lucide-react';
+import { LucidePlusSquare, Upload, Edit2, Save, X, Plus, Image as ImageIcon, User, Package, FileText, Trash2, DollarSign, Layers, EyeIcon, LucideXCircle, Search } from 'lucide-react';
 
 import Loader from "./Loader"
 import Alert, { showAlert } from "./Alert";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect, useRef } from "react";
-import { DeleteData, GetData, PostData } from "../services/ApiServices";
+import { useState, useEffect } from "react";
+import { DeleteData, GetData, PatchData, PostData } from "../services/ApiServices";
 import cloudDinaryServices from '../services/cloudDinaryServices';
 
-
 function ProductsList() {
-
+  
+    const navigate = useNavigate()
+    
     const [ShowLoader, setShowLoader] = useState(false);
-
+    const [viewMode, setViewMode] = useState('view'); // 'view' or 'edit'
+    const [showModal, setShowModal] = useState(true);
+    
     const [ProductsList, setProductsList] = useState(false);
     const [ProductsData, setProductsData] = useState([]);
+    const NumberProducts = ProductsData.length;
+
     const [CategoriesData, setCategoriesData] = useState([]);
     const [SuppliersData, setSuppliersData] = useState([]);
 
     const [SearchValue, setSearchValue] = useState("");
-    const DefaultImage = "https://res.cloudinary.com/dateuzds4/image/upload/v1758219782/jpxfnohhrbfkox7sypjl.jpg";
 
-    const navigate = useNavigate();
-
-    const [formData, setFormData] = useState({
-        codigo: '',
-        nombre: '',
-        precio: 0,
-        stock: 0,
-        calificacion: 0,
-        descripcion: '',
-        referenciaIMG: '',
-        categoria: '',
-        proveedor: ''
-    });
-
-    const [mostrarGaleria, setMostrarGaleria] = useState(false);
-    const [imagenes, setImagenes] = useState([]);
+    const [images, setImages] = useState([]);
+    const [NewImages, setNewImages] = useState([]);
+    const [ShowGallery, setShowGallery] = useState(false);
+    const [ShowGallery2, setShowGallery2] = useState(false);
     const [imagenPrincipal, setImagenPrincipal] = useState(null);
     const [AddProductActive, setAddProductActive] = useState(false);
-
+    
     const [PlacehCode, setPlacehCode] = useState("");
+    const [SeeProductDetail, setSeeProductDetail] = useState(false);
+    
+    const [originalData, setOriginalData] = useState(null);
+    const [originalImages, setOriginalImages] = useState([]);
+    const [originalPrincipal, setOriginalPrincipal] = useState(null);
 
+    const [formData, setFormData] = useState({
+      id: 0,
+      codigo: '',
+      nombre: '',
+      precio: 0,
+      stock: 0,
+      calificacion: 0,
+      descripcion: '',
+      referenciaIMG: '',
+      categoria: '',
+      proveedor: ''
+    });
+    
     useEffect(() => {
     
         const fetchData = async () => {
@@ -54,6 +64,7 @@ function ProductsList() {
             
             const LatestProductCode = GetProductsData[GetProductsData.length - 1].codigo;
             
+            
             // 1. Extraer la parte numérica
             const numero = parseInt(LatestProductCode.replace("PRD", ""), 10);
 
@@ -65,17 +76,12 @@ function ProductsList() {
             setPlacehCode(nuevoCodigo);
 
             if ( GetProductsData && GetCategoriesData) {
-                setProductsData(GetProductsData);
+                setProductsData(GetProductsData);                
                 setCategoriesData(GetCategoriesData);
             }
         };
         fetchData();
     }, []);
-
-    function Back() {
-        document.cookie = "ProductsCookie=; path=/; max-age=0; secure; SameSite=Strict";
-        navigate("/admin")
-    }
 
     function FilterProducts(products, categories, searchValue) {
         if (!searchValue || searchValue.trim() === "") return products;
@@ -102,9 +108,19 @@ function ProductsList() {
     
 
     const handleClose = () => {
-    setAddProductActive(false)
+      setAddProductActive(false)
+      setSeeProductDetail(false)
     };
+    
+    const handleCloseEdit = () => {
 
+    if (!originalData) return;      
+
+      setFormData(originalData);
+      setImages(originalImages);
+      setImagenPrincipal(originalPrincipal);
+      setViewMode('view');
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -122,7 +138,7 @@ function ProductsList() {
         const files = Array.from(e.target.files);
         
         // Calcular cuántas imágenes se pueden agregar (límite de 5)
-        const espacioDisponible = 5 - imagenes.length;
+        const espacioDisponible = 5 - images.length;
         const archivosPermitidos = files.slice(0, espacioDisponible);
         
         if (files.length > espacioDisponible) {
@@ -136,7 +152,8 @@ function ProductsList() {
             file: file
         }));
         
-        setImagenes(prev => [...prev, ...newImages]);
+        setImages(prev => [...prev, ...newImages]);
+        setNewImages(prev => [...prev, ...newImages]);
 
         if (!imagenPrincipal && newImages.length > 0) {
             setImagenPrincipal(newImages[0].id);
@@ -144,26 +161,25 @@ function ProductsList() {
                 ...prev,
                 referenciaIMG: newImages[0].url
             }));
-        }
+        }        
     };
 
     const removeImage = (id) => {
-        setImagenes(prev => prev.filter(img => img.id !== id));
+        setImages(prev => prev.filter(img => img.id !== id));
         
         if (imagenPrincipal === id) {
-        const remaining = imagenes.filter(img => img.id !== id);
+        const remaining = images.filter(img => img.id !== id);
         setImagenPrincipal(remaining.length > 0 ? remaining[0].id : null);
         }
     };
 
     const setAsPrincipal = (id) => {
-        setImagenPrincipal(id);
+      setImagenPrincipal(id);
     };
 
-    const SeeProductDetail = async (id) => {
-
-        navigate(`/DetalleProducto/${id}`);        
-    }  
+    console.log("Original", originalPrincipal);
+    console.log("Imagen pricipa", imagenPrincipal);
+    
 
     const ProductDelete = async (id) => {
 
@@ -214,7 +230,7 @@ function ProductsList() {
         };
               
         // Campos obligatorios básicos
-        if (imagenes.length === 0) {
+        if (images.length === 0) {
             showAlert("info", "Sin imágenes", "Por favor agregue al menos una imagen del producto.");
             return false;
         }
@@ -288,11 +304,37 @@ function ProductsList() {
 
         try {
             /* ===============================
+                VERIFICAR CÓDIGO ÚNICO
+            ================================*/
+            let codigoToUse = formData.codigo;
+            if (codigoToUse && ProductsData.some(p => p.codigo === codigoToUse)) {
+              const suggested = PlacehCode;
+              const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Código duplicado',
+                html: `El código <b>${codigoToUse}</b> ya existe. ¿Deseas usar el código sugerido <b>${suggested}</b>?`,
+                showCancelButton: true,
+                confirmButtonText: 'Usar sugerido',
+                cancelButtonText: 'Cancelar',
+                background: 'rgba(80, 80, 80, 0.75)',
+                color: 'white'
+              });
+
+              if (result.isConfirmed) {
+                codigoToUse = suggested;
+                setFormData(prev => ({ ...prev, codigo: suggested }));
+              } else {
+                showAlert('info', 'Operación cancelada', 'Por favor elige un código diferente antes de continuar.');
+                return;
+              }
+            }
+
+            /* ===============================
                 SUBIR IMÁGENES (Cloudinary)
             ================================*/
             Swal.fire({
                 title: "Subiendo imágenes",
-                html: `<b>Subiendo imagen 1 / ${imagenes.length}</b>`,
+                html: `<b>Subiendo imagen 1 / ${images.length}</b>`,
                 allowOutsideClick: false,
                 allowEscapeKey: false,
                 showConfirmButton: false,
@@ -303,14 +345,14 @@ function ProductsList() {
 
             const imageUrls = [];
 
-            for (let i = 0; i < imagenes.length; i++) {
+            for (let i = 0; i < images.length; i++) {
                 Swal.update({
-                    html: `<b>Subiendo imagen ${i + 1} / ${imagenes.length}</b>`,
+                    html: `<b>Subiendo imagen ${i + 1} / ${images.length}</b>`,
                 });
 
                 Swal.showLoading();
 
-                const file = imagenes[i].file;
+                const file = images[i].file;
 
                 const url = await cloudDinaryServices.uploadImage(file);
 
@@ -323,8 +365,9 @@ function ProductsList() {
             if(imageUrls.length === 0) return
 
             const payload = {
-                ...formData,
-                referenciaIMG: imageUrls[0]
+              ...formData,
+              codigo: codigoToUse,
+              referenciaIMG: imageUrls[0]
             };
 
             Swal.update({
@@ -337,6 +380,10 @@ function ProductsList() {
             const productResponse = await PostData("productosAdmin/", payload);
             const productId = productResponse.data.id;
 
+            setFormData(prev => ({
+                ...prev,
+                id: productId
+            }));
             
             if (!productId) throw new Error("Producto no creado");
 
@@ -353,7 +400,7 @@ function ProductsList() {
             let AllImagesSaved = true;
 
             for (const img of imageUrls) {
-                const responseProdImg = await PostData("imagenesProductos/", {
+                const responseProdImg = await PostData("imagesProductos/", {
                     producto: productId,
                     imagen: img
                 });
@@ -366,19 +413,16 @@ function ProductsList() {
 
             if(AllImagesSaved) {
                 Swal.close();
-
-                /* ===============================
-                    ÉXITO
-                ================================*/
     
                 showAlert("success", "¡Éxito!", "Producto agregado correctamente");
     
                 setAddProductActive(false)
     
                 //Limpiar formulario
-                setImagenes([])
+                setImages([])
     
                 setFormData({
+                    id:0,
                     codigo: '',
                     nombre: '',
                     precio: 0,
@@ -402,6 +446,362 @@ function ProductsList() {
         }
     };
 
+    const handleEdit = () => {
+      setViewMode('edit');
+    };
+    
+    const handleCancel = () => {
+      if (!originalData) return;
+
+      setFormData(originalData);
+      setImages(originalImages);
+      setImagenPrincipal(originalPrincipal);
+      setViewMode('view');
+    };
+
+    const getCategoryName = (catId) => {
+      return CategoriesData.find(cat => cat.id === catId)?.nombre || 'Sin categoría';
+    };
+
+    const getSupplierName = (suppId) => {
+      return SuppliersData.find(sup => sup.id === suppId)?.nombre || 'Sin proveedor';
+    };
+
+    const ProductDetails = async (product) => {
+
+      setSeeProductDetail(true);
+      setShowLoader(true);
+    
+      try {
+        const responseImages = await GetData(`imagenesProducto/${product.id}/`);        
+
+        if (!responseImages || responseImages.length === 0) {
+          showAlert("info", "Sin imágenes", "Este producto no tiene imágenes");
+          setImages([]);
+        } else {
+          const formattedImages = responseImages.map(img => ({
+            id: img.id,
+            url: img.imagen,
+            fechaSubida: img.fechaSubida
+          }));
+
+          console.log("formattedImages", formattedImages);
+          console.log("referenciaIMG", product.referenciaIMG);
+
+          const IMG = formattedImages.find(item => item.url === product.referenciaIMG);
+          console.log("IMG", IMG?.id);
+          
+          // imágenes
+          setImages(formattedImages);
+          setImagenPrincipal(IMG?.id);
+          
+          setOriginalImages(formattedImages);
+          // setOriginalPrincipal(formattedImages[0]?.id || null);
+          setOriginalPrincipal(IMG.id);
+          console.log("Hola");
+
+          setFormData({
+            id: product.id,
+            codigo: product.codigo,
+            nombre: product.nombre,
+            precio: product.precio,
+            stock: product.stock,
+            calificacion: product.calificacion,
+            referenciaIMG: product.referenciaIMG,
+            descripcion: product.descripcion,
+            categoria: product.categoria,
+            proveedor: product.proveedor
+          });
+  
+          setOriginalData({
+            id: product.id,
+            codigo: product.codigo,
+            nombre: product.nombre,
+            precio: product.precio,
+            stock: product.stock,
+            calificacion: product.calificacion,
+            referenciaIMG: product.referenciaIMG,
+            descripcion: product.descripcion,
+            categoria: product.categoria,
+            proveedor: product.proveedor
+          });
+        }
+
+
+      } catch (error) {
+        console.error(error);
+        showAlert("error", "ERROR", "No se pudo cargar el producto");
+        setSeeProductDetail(false);
+      } finally {
+        setShowLoader(false);
+      }
+    };
+
+    const handleSave = async () => {
+      console.log(imagenPrincipal);
+      
+      // ─────────────────────────────
+      // 2️⃣ VALIDAR CAMBIOS
+      // ─────────────────────────────
+      const hasFormChanges =
+        JSON.stringify(formData) !== JSON.stringify(originalData);
+
+      const imagesChanged =
+        JSON.stringify(images) !== JSON.stringify(originalImages);
+
+      const principalImageChanged =
+        originalPrincipal !== imagenPrincipal;
+
+      if (!hasFormChanges && !imagesChanged && !principalImageChanged) {
+        showAlert("info", "Sin cambios", "No hay modificaciones para guardar.");
+        return;
+      }
+
+      let imgURL = "";
+      let codigoToPatch = formData.codigo;
+
+      // Si el código fue modificado, verificar duplicados
+      if (hasFormChanges && formData.codigo && originalData && formData.codigo !== originalData.codigo) {
+        const exists = ProductsData.some(p => p.codigo === formData.codigo && p.id !== formData.id);
+        if (exists) {
+          const suggested = PlacehCode;
+          const res = await Swal.fire({
+            icon: 'warning',
+            title: 'Código duplicado',
+            html: `El código <b>${formData.codigo}</b> ya existe. ¿Deseas usar el código sugerido <b>${suggested}</b>?`,
+            showCancelButton: true,
+            confirmButtonText: 'Usar sugerido',
+            cancelButtonText: 'Cancelar',
+            background: 'rgba(80, 80, 80, 0.75)',
+            color: 'white'
+          });
+
+          if (res.isConfirmed) {
+            codigoToPatch = suggested;
+            setFormData(prev => ({ ...prev, codigo: suggested }));
+          } else {
+            showAlert('info', 'Operación cancelada', 'Por favor elige un código diferente antes de continuar.');
+            return;
+          }
+        }
+      }
+
+      if(principalImageChanged) {
+        // setOriginalPrincipal(imagenPrincipal)
+        console.log("images", images);
+        console.log("imagenPrincipal", imagenPrincipal);
+        
+        const img = originalImages.find(item => item.id === imagenPrincipal || item.url === imagenPrincipal);
+        
+        console.log(img?.url);
+          
+        imgURL = img?.url
+      }
+
+
+      // ─────────────────────────────
+      // 3️⃣ DETECTAR IMÁGENES ELIMINADAS
+      // ─────────────────────────────
+      const deletedImages = originalImages.filter(
+        orig => !images.some(img => img.id === orig.id)
+      );
+
+      console.log("deletedImages", deletedImages);
+
+      // ─────────────────────────────
+      // 4️⃣ ELIMINAR SOLO LAS BORRADAS (DB)
+      // ─────────────────────────────
+      try {
+        if (deletedImages.length > 0) {
+          await Promise.all(
+            deletedImages.map(img =>
+              DeleteData("imagenesProducto/", img.id)
+            )
+          );
+
+          /////////////////////////////////////////
+          // Elimar images de cloudinary (Faltante)
+          /////////////////////////////////////////
+
+        }
+      } catch (error) {
+        showAlert("error", "ERROR", "No se pudieron eliminar las imágenes borradas.");
+        return;
+      }
+
+      // ─────────────────────────────
+      // 5️⃣ SUBIR SOLO IMÁGENES NUEVAS
+      // ─────────────────────────────
+      let uploadedUrls = [];
+
+      try {
+        if (NewImages.length > 0) {
+          uploadedUrls = await Promise.all(
+            NewImages.map(img =>
+              cloudDinaryServices.uploadImage(img.file)
+            )
+          );
+        }
+      } catch (error) {
+        showAlert("error", "ERROR", "Error al subir las imagenes."
+        );
+        return;
+      }
+
+      console.log("uploadedUrls", uploadedUrls);
+
+      // Si la imagen principal cambia y corresponde a una imagen nueva,
+      // asignar la URL subida correspondiente como referenciaIMG
+      if (principalImageChanged && (!imgURL || imgURL === "")) {
+        const newIndex = NewImages.findIndex(n => n.id === imagenPrincipal);
+
+        if (newIndex !== -1 && uploadedUrls[newIndex]) {
+          imgURL = uploadedUrls[newIndex];
+          
+          setFormData(prev => ({
+            ...prev,
+            referenciaIMG: imgURL
+          }));
+        } else {
+          // En algunos casos la imagen principal puede estar en `images` (ya subida previamente)
+          const maybeImg = images.find(item => item.id === imagenPrincipal || item.url === imagenPrincipal);
+          if (maybeImg && maybeImg.url && !maybeImg.url.startsWith('blob:')) {
+            imgURL = maybeImg.url;
+            setFormData(prev => ({ ...prev, referenciaIMG: imgURL }));
+          }
+        }
+      }
+
+      // ─────────────────────────────
+      // 6️⃣ POSTEAR SOLO LAS NUEVAS IMÁGENES
+      // ─────────────────────────────
+      let responsePostList = [];
+
+      try {
+        if (uploadedUrls.length > 0) {
+          for (const url of uploadedUrls) {
+            const responsePost = await PostData("imagenesProducto/", {
+              producto: formData.id,
+              imagen: url
+            });
+            responsePostList.push(responsePost);
+          }
+        }
+
+      } catch (error) {
+        showAlert("warning", "Advertencia", "El producto se guardó, pero hubo un problema al guardar las imágenes nuevas.");
+      }
+
+      console.log("responsePostList", responsePostList);
+
+      // ─────────────────────────────
+      // 7️⃣ ACTUALIZAR PRODUCTO (DATOS)
+      // ─────────────────────────────
+      let updatedProduct;
+
+      try {
+        if (hasFormChanges || principalImageChanged) {
+          // Construir payload según qué cambió
+          let payloadToPatch = null;
+
+          if (hasFormChanges && imgURL && imgURL !== "") {
+            payloadToPatch = { ...formData, referenciaIMG: imgURL, codigo: codigoToPatch };
+          }
+          else if (hasFormChanges) {
+            payloadToPatch = { ...formData, codigo: codigoToPatch };
+          }
+          else if (principalImageChanged && imgURL && imgURL !== "") {
+            payloadToPatch = { referenciaIMG: imgURL, codigo: codigoToPatch };
+          }
+          else if (principalImageChanged) {
+            payloadToPatch = { referenciaIMG: formData.referenciaIMG || imgURL, codigo: codigoToPatch };
+          }
+
+          if (payloadToPatch) {
+            updatedProduct = await PatchData(
+              "productosAdmin/",
+              formData.id,
+              payloadToPatch
+            );
+
+            if (updatedProduct?.data) {
+              // Sincronizar estados locales con lo que devolvió el servidor
+              setFormData(prev => ({ ...prev, ...updatedProduct.data }));
+              setOriginalData(updatedProduct.data);
+            }
+          }
+        }
+
+      } catch (error) {
+        showAlert("error", "ERROR", "Error de comunicación con el servidor.");
+        return;
+      }
+
+      if (!updatedProduct?.data) {
+        showAlert("error", "ERROR", "No se pudieron guardar los datos del producto.");
+        return;
+      }
+
+      console.log("Producto actualizado:", updatedProduct.data);
+
+      // Recargar imágenes desde el servidor para evitar duplicados locales
+      try {
+        const serverImages = await GetData(`imagenesProducto/${updatedProduct.data.id}/`);
+        if (serverImages && serverImages.length > 0) {
+          const formatted = serverImages.map(img => ({
+            id: img.id,
+            url: img.imagen,
+            fechaSubida: img.fechaSubida
+          }));
+
+          setImages(formatted);
+          setOriginalImages(formatted);
+
+          const main = formatted.find(f => f.url === updatedProduct.data.referenciaIMG) || formatted[0];
+          setImagenPrincipal(main?.id || null);
+          setOriginalPrincipal(main?.id || null);
+
+          setFormData(prev => ({ ...prev, referenciaIMG: updatedProduct.data.referenciaIMG }));
+        } else {
+          setImages([]);
+          setOriginalImages([]);
+          setImagenPrincipal(null);
+          setOriginalPrincipal(null);
+        }
+      } catch (err) {
+        console.error('Error recargando imágenes del servidor:', err);
+      }
+
+      // ─────────────────────────────
+      // 8️⃣ ACTUALIZAR LISTA LOCAL
+      // ─────────────────────────────
+      setProductsData(prev =>
+        prev.map(product =>
+          product.id === updatedProduct.data.id
+            ? updatedProduct.data
+            : product
+        )
+      );
+
+      // ─────────────────────────────
+      // 9️⃣ SINCRONIZAR ESTADOS
+      // ─────────────────────────────
+
+      setOriginalImages([...images]);
+      setOriginalPrincipal(imagenPrincipal);
+      setImagenPrincipal(imagenPrincipal);
+
+
+      // ─────────────────────────────
+      // 🔟 ÉXITO
+      // ─────────────────────────────
+      showAlert("success", "Éxito", "Cambios guardados correctamente.");
+
+      setViewMode("view");
+    };
+
+    if (!showModal) return null;
+
     return (
         <div className="w-[100%] pb-10  min-h-[100vh] bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F]">
             {ShowLoader && (
@@ -412,7 +812,7 @@ function ProductsList() {
             <div className="relative w-[95%] md:w-[90%] mx-auto sm:rounded-l">
                 <div className="flex items-center justify-between lg:justify-around sm:flex-row flex-wrap space-y-4 sm:space-y-0 py-3 gap-1 bg-transparent">
 
-                    <h2 className="text-black dark:text-white text-2xl font-bold mt-2 mb-2 md:pl-2 text-cente"> Productos </h2>
+                    <h2 className="text-black dark:text-white text-2xl font-bold mt-2 mb-2 md:pl-2 text-cente"> Productos ({NumberProducts}) </h2>
     
                     <div className="flex gap-3 relative w-full lg:w-[80%] pr-0 md:pr-2">
                         <div className="w-[100%] md:w-[90%] mx-auto">
@@ -456,7 +856,7 @@ function ProductsList() {
                                     <td className="px-2 py-2">{product.stock}</td>
                                     <td className="px-2 py-2 flex justify-center">
 
-                                        <button onClick={() => SeeProductDetail(product.id)} className="flex gap-1 items-center justify-center text-white bg-[#0191ff60] hover:bg-[#0191ff] focus:ring-2 focus:outline-none focus:ring-[#0191ff] font-medium rounded-lg text-sm px-3 py-2 text-center">
+                                        <button onClick={() => ProductDetails(product)} className="flex gap-1 items-center justify-center text-white bg-[#0191ff60] hover:bg-[#0191ff] focus:ring-2 focus:outline-none focus:ring-[#0191ff] font-medium rounded-lg text-sm px-3 py-2 text-center">
                                             <EyeIcon size={18}/>
                                             <span className="hidden md:inline"> Ver producto </span>
                                         </button>
@@ -517,14 +917,14 @@ function ProductsList() {
                                 </div>
 
                                 <div 
-                                onClick={() => setMostrarGaleria(true)}
+                                onClick={() => setShowGallery(true)}
                                 className="bg-white/5 border-2 border-dashed border-white/30 rounded-2xl p-8 text-center hover:border-emerald-400/50 hover:bg-white/10 transition-all cursor-pointer"
                                 >
                                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20 mb-4">
                                     <Upload className="h-10 w-10 text-emerald-300" />
                                 </div>
                                 <p className="text-white font-medium mb-1">
-                                    {imagenes.length > 0 ? `${imagenes.length} imagen${imagenes.length > 1 ? 'es' : ''} cargada${imagenes.length > 1 ? 's' : ''}` : 'Agregar imágenes del producto'}
+                                    {images.length > 0 ? `${images.length} imagen${images.length > 1 ? 'es' : ''} cargada${images.length > 1 ? 's' : ''}` : 'Agregar imágenes del producto'}
                                 </p>
                                 <p className="text-emerald-200 text-sm">
                                     Haz clic para gestionar la galería
@@ -713,11 +1113,8 @@ function ProductsList() {
                 </div>
             )}
 
-
-
-
             {/* Modal de Galería */}
-            {mostrarGaleria && (
+            {ShowGallery && (
                 <div className="fixed inset-0 z-[60] backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-gray-400/40 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
                     
@@ -733,7 +1130,7 @@ function ProductsList() {
                         </div>
                         </div>
                         <button
-                        onClick={() => setMostrarGaleria(false)}
+                        onClick={() => setShowGallery(false)}
                         className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-2 rounded-xl"
                         >
                         <X size={24} />
@@ -753,29 +1150,30 @@ function ProductsList() {
                             accept="image/*"
                             onChange={handleImageUpload}
                             className="hidden"
-                            disabled={imagenes.length >= 5}
+                            disabled={images.length >= 5}
                             />
                             <label 
                             htmlFor="imageUploadModal" 
-                            className={`${imagenes.length >= 5 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} block`}
+                            className={`${images.length >= 5 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} block`}
                             >
                             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/20 mb-3">
                                 <Upload className="h-8 w-8 text-emerald-300" />
                             </div>
                             <p className="text-white font-medium mb-1">
-                                {imagenes.length >= 5 ? 'Límite alcanzado (5/5)' : 'Subir más imágenes'}
+                                {images.length >= 5 ? 'Límite alcanzado (5/5)' : 'Subir más imágenes'}
                             </p>
                             <p className="text-emerald-200 text-sm">
-                                {imagenes.length >= 5 ? 'Elimina alguna para agregar más' : `PNG, JPG, JPEG • ${imagenes.length}/5 usadas`}
+                                {images.length >= 5 ? 'Elimina alguna para agregar más' : `PNG, JPG, JPEG • ${images.length}/5 usadas`}
                             </p>
                             </label>
                         </div>
                         </div>
 
                         {/* Grid de imágenes */}
-                        {imagenes.length > 0 ? (
+                        {images.length > 0 ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {imagenes.map(img => (
+                        {console.log(images)}
+                            {images.map(img => (
                             <div key={img.id} className="relative">
                                 <div
                                 className={`relative overflow-hidden rounded-xl transition-all ${
@@ -785,7 +1183,7 @@ function ProductsList() {
                                 }`}
                                 >
                                 <img
-                                    src={img.url}
+                                    src={img.imagen}
                                     alt="Preview"
                                     className="w-full h-40 object-cover"
                                 />
@@ -833,6 +1231,492 @@ function ProductsList() {
                     </div>
                     </div>
                 </div>
+            )}
+
+            {SeeProductDetail && (
+            
+            <>
+{/* {console.log("formData:", formData)}
+{console.log("originalData:", originalData)} */}
+
+
+              <div className="fixed inset-0 z-40 bg-[#83917f7c] dark:bg-[#171731] backdrop-blur-md overflow-hidden">
+                <div className="h-full overflow-y-auto p-5">
+                  <div className="w-full sm:w-[90%] mx-auto">
+                    
+                    {/* Header flotante */}
+                    <div className="relative mb-6">
+                      <div className="rounded-[10px] p-6 sm:p-5 shadow-2xl">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h1 className="text-2xl font-bold text-white mb-1">
+                              {viewMode === 'view' ? 'Detalles del Producto' : 'Editar Producto'}
+                            </h1>
+                            <p className="text-emerald-200">
+                              {viewMode === 'view' ? 'Visualiza la información completa' : 'Actualiza la información del producto'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {viewMode === 'view' && (
+                              <button
+                                onClick={handleEdit}
+                                className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-2 rounded-2xl flex items-center gap-2"
+                              >
+                                <Edit2 size={24} />
+                              </button>
+                            )}
+                            {viewMode === 'view' ? (
+                              <button onClick={handleClose} className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-2 rounded-2xl">
+                                <X size={28} />
+                              </button>
+                            
+                            ) : (
+                              <button onClick={handleCloseEdit} className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-2 rounded-2xl">
+                                <X size={28} />
+                              </button>
+                            )}
+                            
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-6">
+                      
+                      {/* Columna Izquierda - Visual */}
+                      <div className="space-y-3">
+                        
+                        {/* Card de Imágenes */}
+                        <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                          <div className="flex items-center gap-3 mb-5">
+                            <div className="p-2 bg-emerald-500/20 rounded-2xl">
+                              <ImageIcon className="w-5 h-5 text-emerald-300" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-white">Galería Visual</h2>
+                          </div>
+
+                          {viewMode === 'view' ? (
+                            // Vista de solo lectura
+                            <div className="space-y-4">
+                              {images.length > 0 ? (
+                                <>
+                                  {/* Imagen principal */}
+                                  <div className="relative rounded-2xl overflow-hidden">
+                                    {console.log(formData.referenciaIMG)}
+                                    <img
+                                      src={formData.referenciaIMG || 
+                                        images.find(img => img.id === imagenPrincipal)?.url ||
+                                        images[0]?.url
+                                      }
+                                      alt="Imagen principal"
+                                      className="w-full h-70 object-contain"
+                                    />
+                                    <div className="absolute top-3 left-3 bg-emerald-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-lg">
+                                      ★ Principal
+                                    </div>
+                                  </div>
+
+                                  {/* Miniaturas (sin repetir la principal) */}
+                                  {images.length > 1 && (
+                                    <div className="grid grid-cols-4 gap-2">
+                                      {images.map(img =>
+                                        img.url !== formData.referenciaIMG ? (
+                                          <div key={img.id} className="relative rounded-lg overflow-hidden h-30">
+                                            <img
+                                              src={img.url}
+                                              alt="Miniatura"
+                                              className="w-full h-full object-contain"
+                                            />
+                                          </div>
+                                        ) : null
+                                      )}
+                                    </div>
+                                  )}
+                                </>
+
+                              ) : (
+                                <div className="bg-white/5 border-2 border-dashed border-white/30 rounded-2xl p-8 text-center">
+                                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20 mb-4">
+                                    <ImageIcon className="h-10 w-10 text-emerald-300" />
+                                  </div>
+                                  <p className="text-white/60">Sin imágenes</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            // Modo edición
+                            <div 
+                              onClick={() => setShowGallery2(true)}
+                              className="bg-white/5 border-2 border-dashed border-white/30 rounded-2xl p-8 text-center hover:border-emerald-400/50 hover:bg-white/10 transition-all cursor-pointer"
+                            >
+                              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20 mb-4">
+                                <Upload className="h-10 w-10 text-emerald-300" />
+                              </div>
+                              <p className="text-white font-medium mb-1">
+                                {images.length > 0 ? `${images.length} imagen${images.length > 1 ? 'es' : ''} cargada${images.length > 1 ? 's' : ''}` : 'Agregar imágenes del producto'}
+                              </p>
+                              <p className="text-emerald-200 text-sm">
+                                Haz clic para gestionar la galería
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Card de Descripción */}
+                        <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-purple-500/20 rounded-2xl">
+                              <FileText className="w-6 h-6 text-purple-300" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-white">Descripción</h2>
+                          </div>
+                          
+                          {viewMode === 'view' ? (
+                            <div className="bg-white/5 border border-white/20 rounded-2xl p-4">
+                              <p className="text-white/90 leading-relaxed">
+                                {formData.descripcion || 'Sin descripción'}
+                              </p>
+                            </div>
+                          ) : (
+                            <textarea
+                              name="descripcion"
+                              value={formData.descripcion}
+                              onChange={handleInputChange}
+                              rows="6"
+                              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-2xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all resize-none text-white placeholder-white/50"
+                              placeholder="Cuenta la historia de este producto..."
+                            ></textarea>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Columna Derecha - Datos */}
+                      <div className="space-y-3">
+                        
+                        {/* Card de Identificación */}
+                        <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-blue-500/20 rounded-2xl">
+                              <Package className="w-6 h-6 text-blue-300" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-white">Identificación</h2>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                Código
+                              </label>
+                              {viewMode === 'view' ? (
+                                <div className="bg-white/5 border border-white/20 rounded-xl px-3 py-2">
+                                  <p className="text-white">{formData.codigo || 'Sin código'}</p>
+                                </div>
+                              ) : (
+                                <input
+                                  type="text"
+                                  name="codigo"
+                                  value={formData.codigo}
+                                  onChange={handleInputChange}
+                                  maxLength={15}
+                                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                                  placeholder="PROD-001"
+                                />
+                              )}
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                Nombre del producto *
+                              </label>
+                              {viewMode === 'view' ? (
+                                <div className="bg-white/5 border border-white/20 rounded-xl px-3 py-2">
+                                  <p className="text-white font-medium">{formData.nombre}</p>
+                                </div>
+                              ) : (
+                                <input
+                                  type="text"
+                                  name="nombre"
+                                  value={formData.nombre}
+                                  onChange={handleInputChange}
+                                  maxLength={100}
+                                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                                  placeholder="1kg de papas"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card de Comercial */}
+                        <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-yellow-500/20 rounded-2xl">
+                              <DollarSign className="w-6 h-6 text-yellow-300" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-white">Información Comercial</h2>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                Precio (₡) *
+                              </label>
+                              {viewMode === 'view' ? (
+                                <div className="bg-white/5 border border-white/20 rounded-xl px-3 py-2">
+                                  <p className="text-white font-bold text-lg">₡{formData.precio.toLocaleString()}</p>
+                                </div>
+                              ) : (
+                                <input
+                                  type="number"
+                                  name="precio"
+                                  value={formData.precio}
+                                  onChange={handleInputChange}
+                                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                                  placeholder="1000"
+                                  step="0.01"
+                                  min="0"
+                                />
+                              )}
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                Stock
+                              </label>
+                              {viewMode === 'view' ? (
+                                <div className="bg-white/5 border border-white/20 rounded-xl px-3 py-2">
+                                  <p className="text-white font-semibold">{formData.stock} unidades</p>
+                                </div>
+                              ) : (
+                                <input
+                                  type="number"
+                                  name="stock"
+                                  value={formData.stock}
+                                  onChange={handleInputChange}
+                                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                                  min="0"
+                                  placeholder="0"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card de Clasificación */}
+                        <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-pink-500/20 rounded-2xl">
+                              <Layers className="w-6 h-6 text-pink-300" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-white">Clasificación</h2>
+                          </div>
+
+                          <div className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                Categoría
+                              </label>
+                              {viewMode === 'view' ? (
+                                <div className="bg-white/5 border border-white/20 rounded-xl px-3 py-2">
+                                  <p className="text-white">{getCategoryName(formData.categoria)}</p>
+                                </div>
+                              ) : (
+                                <select
+                                  name="categoria"
+                                  value={formData.categoria}
+                                  onChange={handleInputChange}
+                                  className="w-full px-3 py-2 bg-white/10 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white cursor-pointer"
+                                >
+                                  <option className="bg-emerald-600" value="">Seleccionar categoría</option>
+                                  {CategoriesData.map(cat => (
+                                    <option className="bg-emerald-600" key={cat.id} value={cat.id}>{cat.nombre}</option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
+
+                            <div>
+                              <label className="block text-sm font-medium text-emerald-200 mb-2">
+                                Proveedor
+                              </label>
+                              {viewMode === 'view' ? (
+                                <div className="bg-white/5 border border-white/20 rounded-xl px-3 py-2">
+                                  <p className="text-white">{getSupplierName(formData.proveedor)}</p>
+                                </div>
+                              ) : (
+                                <select
+                                  name="proveedor"
+                                  value={formData.proveedor}
+                                  onChange={handleInputChange}
+                                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white cursor-pointer"
+                                >
+                                  <option className="bg-emerald-600" value="">Seleccionar proveedor</option>
+                                  {SuppliersData.map(prov => (
+                                    <option className="bg-emerald-600" key={prov.id} value={prov.id}>{prov.nombre}</option>
+                                  ))}
+                                </select>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botones de acción flotantes */}
+                    <div className="mt-3 px-6">
+                      <div className="flex flex-col sm:flex-row justify-end gap-4">
+                        {viewMode === 'view' ? (
+                          <button
+                            type="button"
+                            onClick={handleClose}
+                            className="px-5 py-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-2xl font-medium transition-all"
+                          >
+                            Cerrar
+                          </button>
+                        ) : (
+                          <>
+                            <button
+                              type="button"
+                              onClick={handleCancel}
+                              className="px-5 py-2 bg-white/10 hover:bg-white/20 border border-white/30 text-white rounded-2xl font-medium transition-all"
+                            >
+                              Cancelar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleSave}
+                              className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-2xl font-medium transition-all shadow-lg hover:shadow-emerald-500/50 flex items-center justify-center gap-2"
+                            >
+                              <Save size={20} />
+                              <span>Guardar Cambios</span>
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal de Galería */}
+              {ShowGallery2 && (
+                <div className="fixed inset-0 z-[60] backdrop-blur-sm flex items-center justify-center p-4">
+                  <div className="bg-gray-400/40 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
+                    
+                    {/* Header del modal */}
+                    <div className="flex items-center justify-between p-6 border-b border-white/10">
+                      <div className="flex items-center gap-3">
+                        <div className="p-3 bg-emerald-500/20 rounded-2xl">
+                          <ImageIcon className="w-6 h-6 text-emerald-300" />
+                        </div>
+                        <div>
+                          <h3 className="text-xl font-semibold text-white">Gestionar Galería</h3>
+                          <p className="text-sm text-emerald-200">Máximo 5 imágenes</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setShowGallery2(false)}
+                        className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-2 rounded-xl"
+                      >
+                        <X size={24} />
+                      </button>
+                    </div>
+
+                    {/* Contenido del modal */}
+                    <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+                      
+                      {/* Input para subir imágenes */}
+                      <div className="mb-6">
+                        <div className="bg-white/5 border-2 border-dashed border-white/30 rounded-2xl p-6 text-center hover:border-emerald-400/50 hover:bg-white/10 transition-all">
+                          <input
+                            type="file"
+                            id="imageUploadModal"
+                            multiple
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            disabled={images.length >= 5}
+                          />
+                          <label 
+                            htmlFor="imageUploadModal" 
+                            className={`${images.length >= 5 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} block`}
+                          >
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/20 mb-3">
+                              <Upload className="h-8 w-8 text-emerald-300" />
+                            </div>
+                            <p className="text-white font-medium mb-1">
+                              {images.length >= 5 ? 'Límite alcanzado (5/5)' : 'Subir más imágenes'}
+                            </p>
+                            <p className="text-emerald-200 text-sm">
+                              {images.length >= 5 ? 'Elimina alguna para agregar más' : `PNG, JPG, JPEG • ${images.length}/5 usadas`}
+                            </p>
+                          </label>
+                        </div>
+                      </div>
+
+                      {/* Grid de imágenes */}
+                      {images.length > 0 ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                          {images.map(img => (
+                            <div key={img.id} className="relative">
+                              <div
+                                className={`relative overflow-hidden rounded-xl transition-all ${
+                                  imagenPrincipal === img.url || imagenPrincipal === img.id
+                                    ? 'ring-4 ring-emerald-400'
+                                    : 'ring-2 ring-white/20 hover:ring-white/40'
+                                }`}
+                              >
+                                <img
+                                  src={img.url}
+                                  alt="Preview"
+                                  className="w-full h-40 object-cover"
+                                />
+
+                                {/* Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+
+                                {/* Botón eliminar */}
+                                <button
+                                  type="button"
+                                  onClick={() => removeImage(img.id)}
+                                  className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg"
+                                >
+                                  <X size={16} />
+                                </button>
+                                
+                                {/* Principal */}
+                                {imagenPrincipal === img.url || imagenPrincipal === img.id ? (
+                                  <div className="absolute bottom-3 left-3 bg-emerald-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg shadow-lg">
+                                    ★ Principal
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setAsPrincipal(img.id)}
+                                    className="absolute bottom-3 left-3 bg-white/90 hover:bg-emerald-500 hover:text-white text-gray-800 text-sm font-medium px-3 py-1.5 rounded-lg shadow-lg"
+                                  >
+                                    Marcar principal
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-12">
+                          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/5 mb-4">
+                            <ImageIcon className="w-10 h-10 text-white/30" />
+                          </div>
+                          <p className="text-white/60">No hay imágenes todavía</p>
+                          <p className="text-white/40 text-sm mt-1">Sube tu primera imagen arriba</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+
             )}
 
         </div>
