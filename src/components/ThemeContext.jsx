@@ -7,24 +7,53 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
 
-    const Token = getCookie("access_token");
-    const UserId = decodeJwt(Token)?.user_id;
+    const [token, setToken] = useState(() => getCookie("access_token"));
+    const [userId, setUserId] = useState(null);
 
     const [theme, setTheme] = useState(null);
     const [loadingTheme, setLoadingTheme] = useState(true);
 
+    // 🔹 Escuchar login / logout
     useEffect(() => {
-        if (!UserId) return;
+        const interval = setInterval(() => {
+            const currentToken = getCookie("access_token");
+            setToken(prev => prev !== currentToken ? currentToken : prev);
+        }, 500); // polling ligero
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // 🔹 Decodificar token
+    useEffect(() => {
+        if (!token) {
+            setUserId(null);
+            setTheme(null);
+            setLoadingTheme(false);
+            return;
+        }
+
+        try {
+            const decoded = decodeJwt(token);
+            setUserId(decoded?.user_id ?? null);
+        } catch {
+            setUserId(null);
+        }
+    }, [token]);
+
+    // 🔹 Cargar tema por usuario
+    useEffect(() => {
+        if (!userId) {
+            document.documentElement.classList.remove("dark");
+            return;
+        }
 
         const fetchTheme = async () => {
             try {
-                const response = await GetData(`informacionUsuarios/${UserId}/`);
-
-                const userTheme = response?.tema || "light";
-                setTheme(userTheme);
-
+                setLoadingTheme(true);
+                const response = await GetData(`informacionUsuarios/${userId}/`);
+                setTheme(response?.tema || "light");
             } catch (error) {
-                console.error("Error cargando tema de usuario:", error);
+                console.error("Error cargando tema:", error);
                 setTheme("light");
             } finally {
                 setLoadingTheme(false);
@@ -32,22 +61,18 @@ export const ThemeProvider = ({ children }) => {
         };
 
         fetchTheme();
-    }, [UserId]);
+    }, [userId]);
 
-    // 🔹 aplicar tema global
+    // 🔹 Aplicar tema
     useEffect(() => {
-
-        if (!theme) return;
-        document.documentElement.classList.toggle("dark", theme === "oscuro");
+        document.documentElement.classList.toggle(
+            "dark",
+            theme === "oscuro"
+        );
     }, [theme]);
 
     return (
-        <ThemeContext.Provider
-            value={{
-                theme,
-                loadingTheme
-            }}
-        >
+        <ThemeContext.Provider value={{ theme, loadingTheme }}>
             {children}
         </ThemeContext.Provider>
     );
