@@ -14,7 +14,7 @@ function DashboardPage() {
   
   const DefaultImage = Default_Image;
   const [UserName, setUserName] = useState("");
-  const [UserImage, setUserImage] = useState("");
+  const [UserImage, setUserImage] = useState();
 
   const access_token = getCookie("access_token");
   const Role = jwtDecode(access_token).role;
@@ -32,14 +32,14 @@ function DashboardPage() {
         const AditionalInfo = await GetData("informacionUsuarios/");
         
         // filtrar usuario por id
-        const ID = userQuery.data.id;
+        const ID = userQuery.data?.id;
         const UserInfo = AditionalInfo.find(UInfo => UInfo.user === ID)        
         
         if (UserInfo) {
           
           if(!UserInfo.referenciaIMG) {
             setUserImage(DefaultImage);
-          } else {  
+          } else {
             setUserImage(UserInfo.referenciaIMG);
           }
         }
