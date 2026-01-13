@@ -177,8 +177,6 @@ function ProductsList() {
       setImagenPrincipal(id);
     };
 
-    console.log("Original", originalPrincipal);
-    console.log("Imagen pricipa", imagenPrincipal);
     
 
     const ProductDelete = async (id) => {
@@ -485,11 +483,8 @@ function ProductsList() {
             fechaSubida: img.fechaSubida
           }));
 
-          console.log("formattedImages", formattedImages);
-          console.log("referenciaIMG", product.referenciaIMG);
 
           const IMG = formattedImages.find(item => item.url === product.referenciaIMG);
-          console.log("IMG", IMG?.id);
           
           // imágenes
           setImages(formattedImages);
@@ -498,7 +493,6 @@ function ProductsList() {
           setOriginalImages(formattedImages);
           // setOriginalPrincipal(formattedImages[0]?.id || null);
           setOriginalPrincipal(IMG.id);
-          console.log("Hola");
 
           setFormData({
             id: product.id,
@@ -538,7 +532,6 @@ function ProductsList() {
     };
 
     const handleSave = async () => {
-      console.log(imagenPrincipal);
       
       // ─────────────────────────────
       // 2️⃣ VALIDAR CAMBIOS
@@ -588,12 +581,9 @@ function ProductsList() {
 
       if(principalImageChanged) {
         // setOriginalPrincipal(imagenPrincipal)
-        console.log("images", images);
-        console.log("imagenPrincipal", imagenPrincipal);
         
         const img = originalImages.find(item => item.id === imagenPrincipal || item.url === imagenPrincipal);
         
-        console.log(img?.url);
           
         imgURL = img?.url
       }
@@ -606,7 +596,6 @@ function ProductsList() {
         orig => !images.some(img => img.id === orig.id)
       );
 
-      console.log("deletedImages", deletedImages);
 
       // ─────────────────────────────
       // 4️⃣ ELIMINAR SOLO LAS BORRADAS (DB)
@@ -648,7 +637,6 @@ function ProductsList() {
         return;
       }
 
-      console.log("uploadedUrls", uploadedUrls);
 
       // Si la imagen principal cambia y corresponde a una imagen nueva,
       // asignar la URL subida correspondiente como referenciaIMG
@@ -692,7 +680,6 @@ function ProductsList() {
         showAlert("warning", "Advertencia", "El producto se guardó, pero hubo un problema al guardar las imágenes nuevas.");
       }
 
-      console.log("responsePostList", responsePostList);
 
       // ─────────────────────────────
       // 7️⃣ ACTUALIZAR PRODUCTO (DATOS)
@@ -742,7 +729,6 @@ function ProductsList() {
         return;
       }
 
-      console.log("Producto actualizado:", updatedProduct.data);
 
       // Recargar imágenes desde el servidor para evitar duplicados locales
       try {
@@ -1172,7 +1158,6 @@ function ProductsList() {
                         {/* Grid de imágenes */}
                         {images.length > 0 ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {console.log(images)}
                             {images.map(img => (
                             <div key={img.id} className="relative">
                                 <div
@@ -1236,8 +1221,6 @@ function ProductsList() {
             {SeeProductDetail && (
             
             <>
-{/* {console.log("formData:", formData)}
-{console.log("originalData:", originalData)} */}
 
 
               <div className="fixed inset-0 z-40 bg-[#83917f7c] dark:bg-[#171731] backdrop-blur-md overflow-hidden">
@@ -1302,7 +1285,6 @@ function ProductsList() {
                                 <>
                                   {/* Imagen principal */}
                                   <div className="relative rounded-2xl overflow-hidden">
-                                    {console.log(formData.referenciaIMG)}
                                     <img
                                       src={formData.referenciaIMG || 
                                         images.find(img => img.id === imagenPrincipal)?.url ||
