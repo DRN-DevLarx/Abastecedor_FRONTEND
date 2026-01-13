@@ -388,7 +388,7 @@ function UsersList() {
                         >
                             <td className="px-2 py-2">
                                 <div className="flex items-center gap-2">
-                                    <img className="w-10 h-10 rounded-full object-cover" src={CurrentUserImage} alt="User image"/>
+                                    <img className="w-10 h-10 rounded-full object-cover" src={CurrentUserImage || DefaultImage} alt="User image"/>
                                     <div>
                                         <div className="font-semibold text-gray-900 dark:text-white">
                                             {CurrentFirstName} {CurrentLastName} (Tú)
