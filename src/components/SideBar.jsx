@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { X, ChartAreaIcon, MessageCircle, Settings, LogOut, ArrowLeft, Users2, ShoppingCartIcon, Truck, Layers } from "lucide-react";
+import { X, ChartAreaIcon, MessageCircle, Settings, LogOut, ArrowLeft, Users2, ShoppingCartIcon, Truck, Layers, ActivityIcon } from "lucide-react";
 import { Logout } from "../services/Token/sessionManager";
 import Statistics from "./Statistics";
 import UsersList from "./UsersList";
-import Messages from "./Messages";
 import ProductsList from "./ProductsList";
+import OrdersList from "./OrdersList"
+import Messages from "./Messages";
 import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
 
@@ -20,9 +21,10 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
     { name: "Estadísticas", icon: <ChartAreaIcon size={18} />, component: <Statistics /> },
     { name: "Usuarios", icon: <Users2 size={18} />, component: <UsersList /> },
     { name: "Productos", icon: <Layers size={18} />, component: <ProductsList /> },
-    { name: "Pedidos", icon: <Truck size={18} />, component: <ProductsList /> },
+    { name: "Pedidos", icon: <Truck size={18} />, component: <OrdersList /> },
     { name: "Ventas", icon: <ShoppingCartIcon size={18} />, component: <ProductsList /> },
     { name: "Mensajes", icon: <MessageCircle size={18} />, component: <Messages /> },
+    { name: "Movimientos", icon: <ActivityIcon size={18} />, component: <Messages /> },
     { name: "Ajustes", icon: <Settings size={18} />, component: <div className="pt-10">Ajustes</div> },
   ];
   
