@@ -3,22 +3,42 @@ import Image1 from "../assets/image1.png";
 import Image2 from "../assets/image2.jfif";
 import Image3 from "../assets/image3.webp";
 import Image4 from "../assets/image4.avif";
+import { GetData } from "../services/ApiServices";
 
 
 function Carousel3D() {
-  const images = [Image1, Image2, Image3, Image4];
-  
+  const localImages = [Image1, Image2, Image3, Image4];
+  const [images, setImages] = useState(localImages);
   const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
+  // Autoplay
   useEffect(() => {
-    const interval = setInterval(() => {
-      handleNext();
-    }, 5000);
-    return () => clearInterval(interval); 
+    const interval = setInterval(() => handleNext(), 5000);
+    return () => clearInterval(interval);
+  }, []);
 
-  }, [currentIndex]);
+  // Fetch images from API and use local images as fallback
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const data = await GetData('imagenesCarrusel/')
+        if (!mounted) return
+        if (Array.isArray(data) && data.length) {
+          // solo imágenes con estado 'activa', map a urls
+          const urls = data.filter(item => item.estado === 'activa').map(item => item.url).filter(Boolean)
+          if (urls.length) setImages(urls)
+        }
+      } catch (err) {
+        // leave fallback images
+        console.error('Error cargando imágenes del carrusel:', err)
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
 
   const handlePrev = () => { setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); };
   const handleNext = () => { setCurrentIndex((prev) => (prev + 1) % images.length); };
@@ -28,10 +48,10 @@ function Carousel3D() {
 
   return (
     <div className="relative w-full h-[600px] flex items-center justify-center bg-[#adb6aaa8] dark:bg-[#171731]" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-      <div className="relative w-[58%]  md:w-[450px] h-[250px] md:h-[320px] bg-transparent" style={{ transformStyle: "preserve-3d", transform: `perspective(1000px) rotateY(${currentIndex * -360 / images.length}deg)`, transition: "transform 1s ease-in-out" }}>
+      <div className="relative w-[58%]  md:w-[450px] h-[250px] md:h-[320px]" style={{ transformStyle: "preserve-3d", transform: `perspective(1000px) rotateY(${currentIndex * -360 / images.length}deg)`, transition: "transform 1s ease-in-out" }}>
         {images.map((src, i) => {
           const angle = (360 / images.length) * i;
-          return <img key={i} src={src} alt={`Slide ${i + 1}`} className="absolute w-full md:w-auto h-full object-contain rounded-xl" style={{ transform: `rotateY(${angle}deg) translateZ(400px)`, transition: "transform 1s ease-in-out" }} />;
+          return <img key={i} src={src} alt={`Slide ${i + 1}`} className="absolute w-full h-full object-contain rounded-xl" style={{ transform: `rotateY(${angle}deg) translateZ(400px)`, transition: "transform 1s ease-in-out" }} />;
         })}
       </div>
 
