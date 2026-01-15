@@ -920,11 +920,13 @@ function ProductsList() {
 
                             {/* Card de Descripción */}
                             <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl">
-                                <div className="flex items-center gap-3 mb-4">
+                              <div className="flex items-center gap-3 mb-4">
                                 <div className="p-2 bg-purple-500/20 rounded-2xl">
                                     <FileText className="w-6 h-6 text-purple-300" />
                                 </div>
+
                                 <h2 className="text-xl font-semibold text-white">Descripción</h2>
+                                
                                 </div>
                                 
                                 <textarea
@@ -935,8 +937,8 @@ function ProductsList() {
                                 className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-2xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all resize-none text-white placeholder-white/50"
                                 placeholder="Cuenta la historia de este producto..."
                                 ></textarea>
-                                </div>
-                                </div>
+                              </div>
+                            </div>
 
                             {/* Columna Derecha - Datos */}
                             <div className="space-y-3">
@@ -1164,7 +1166,7 @@ function ProductsList() {
                                 className={`relative overflow-hidden rounded-xl transition-all ${
                                     imagenPrincipal === img.id
                                     ? 'ring-4 ring-emerald-400'
-                                    : 'ring-2 ring-white/20 hover:ring-white/40'
+                                    : 'ring-2 ring-white/20 hover:ring-white/40'  
                                 }`}
                                 >
                                 <img
