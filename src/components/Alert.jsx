@@ -37,7 +37,7 @@ export default function Alert() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -30 }}
           transition={{ duration: 0.4 }}
-          className="fixed top-10 left-1/2 -translate-x-1/2 z-50 w-full h-20"
+          className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] w-full h-20"
         >
       
             <div className={`${config[alert.tipo].bg} w-[80%] sm:w-[60%] md:w-[50%] mx-auto rounded-lg shadow-lg flex items-center p-4 gap-3 text-white`}>
