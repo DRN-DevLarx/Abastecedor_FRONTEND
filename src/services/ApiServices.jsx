@@ -74,7 +74,6 @@ async function PostData(endpoint, body) {
 
 // PUT
 async function PutData(endpoint, id, body) {
-    console.log(endpoint, id, body);
       
     try {
         const response = await fetch(`${API_URL}${endpoint}${id}/`, {
@@ -100,6 +99,8 @@ async function PutData(endpoint, id, body) {
 
 // PATCH
 async function PatchData(endpoint, id, body) {
+  console.log(body);
+  
   try {
     const response = await fetch(`${API_URL}${endpoint}${id}/`, {
       method: "PATCH",
