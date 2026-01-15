@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import Image1 from "../assets/image1.png";
-import Image2 from "../assets/image2.jfif";
-import Image3 from "../assets/image3.webp";
-import Image4 from "../assets/image4.avif";
 import { GetData } from "../services/ApiServices";
 
-
 function Carousel3D() {
-  const localImages = [Image1, Image2, Image3, Image4];
   const [images, setImages] = useState(localImages);
   const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartX = useRef(0);
