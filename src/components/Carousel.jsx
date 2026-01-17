@@ -40,6 +40,8 @@ function Carousel3D() {
   const handleTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; };
   const handleTouchEnd = (e) => { touchEndX.current = e.changedTouches[0].screenX; if (touchStartX.current - touchEndX.current > 50) handleNext(); if (touchEndX.current - touchStartX.current > 50) handlePrev(); };
 
+  if (!images || images.length === 0) return null;
+
   return (
     <div className="relative w-full h-[600px] flex items-center justify-center bg-[#adb6aaa8] dark:bg-[#171731]" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <div className="relative w-[58%]  md:w-[450px] h-[250px] md:h-[320px]" style={{ transformStyle: "preserve-3d", transform: `perspective(1000px) rotateY(${currentIndex * -360 / images.length}deg)`, transition: "transform 1s ease-in-out" }}>
