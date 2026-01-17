@@ -569,126 +569,143 @@ function OrdersList() {
         <div className="w-[100%] pb-10 min-h-[100vh] bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F]">
             <Alert />
 
-            <div className="relative w-[95%] md:w-[90%] mx-auto sm:rounded-l">
-                <div className="flex items-center justify-between lg:justify-around sm:flex-row flex-wrap space-y-4 sm:space-y-0 py-3 gap-1 bg-transparent">
+            <div className="relative w-[95%] overflow-hidden md:w-[90%] mx-auto sm:rounded-l">
+            <div className="pb-4">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
 
-                    <h2 className="text-black dark:text-white text-2xl font-bold mt-2 mb-2 md:pl-2 text-center">Pedidos ({NumberOders}) </h2>
-
-                    <div className="flex gap-3 relative w-full lg:w-[80%] pr-0 md:pr-2">
-                        <div className="w-[100%] md:w-[90%] mx-auto">
-                            <div className="absolute inset-y-0 rtl:inset-r-0 start-[0%] flex items-center ps-3 pointer-events-none">
-                                <Search size={18} />
-                            </div>
-                            <input
-                                value={SearchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
-                                type="text"
-                                id="table-search-orders"
-                                className="w-full block pt-2 ps-10 text-sm text-white placeholder-gray-100 border border-gray-300 rounded-lg bg-gray-400 focus:ring-[#38664e] focus:border-[#38664e] dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-[#38664e] dark:focus:border-[#38664e]"
-                                placeholder="Buscar pedido por ID, cliente o estado"
-                            />
-                        </div>
-
-                        <button
-                            onClick={() => setAddOrderActive(true)}
-                            className="md:w-[30%] lg:w-[50%] xl:w-[30%] inline-flex gap-1 items-center justify-center text-white bg-gray-400 hover:bg-[#38664e] hover:scale-105 border border-gray-300 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400"
-                            type="button"
-                        >
-                            <LucidePlusSquare />
-                            <p className="hidden md:inline">Agregar pedido</p>
-                        </button>
-                    </div>
+                <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-bold text-black dark:text-white">Pedidos</h2>
+                    <span className="flex justify-center items-center h-6 w-6 text-sm rounded-full bg-emerald-400 text-black">
+                    {NumberOders}
+                    </span>
                 </div>
 
-                <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs text-gray-100 uppercase bg-[#3f763081] backdrop-blur-md">
-                        <tr>
-                            <th className="px-2 py-3">ID Pedido</th>
-                            <th className="px-2 py-3">Cliente</th>
-                            <th className="hidden lg:table-cell px-2 py-3">Fecha</th>
-                            <th className="px-2 py-3">Total</th>
-                            <th className="px-2 py-3">Estado</th>
-                            <th className="px-2 py-3 text-center">Acciones</th>
+                <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full lg:w-[65%] p-1">
+                    <div className="relative flex-1">
+                    <Search size={18} className="absolute left-3 top-1/2 sm:top-[45%] -translate-y-1/2" />
+                    <input
+                        value={SearchValue}
+                        onChange={e => setSearchValue(e.target.value)}
+                        placeholder="Buscar pedido por ID, cliente o estado"
+                        className="w-full ps-10 py-2 text-sm text-white placeholder-gray-100
+                                border border-gray-300 rounded-lg
+                                bg-emerald-400/20
+                                focus:outline focus:outline-emerald-500
+                                dark:border-gray-600 dark:placeholder-gray-400"
+                    />
+                    </div>
+
+                    <button
+                    onClick={() => setAddOrderActive(true)}
+                    className="flex items-center justify-center gap-1 px-2 py-2 sm:py-0 text-sm
+                                rounded-lg text-gray-400 bg-emerald-400/20
+                                border border-gray-300
+                                hover:bg-emerald-500 hover:text-white hover:scale-105 transition"
+                    >
+                    <LucidePlusSquare />Agregar pedido
+                    </button>
+                </div>
+                </div>
+
+                <div className="mt-1 h-px bg-gray-300 dark:bg-gray-700" />
+            </div>
+
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                <thead className="text-xs text-gray-100 uppercase bg-emerald-600 backdrop-blur-md">
+                <tr>
+                    <th className="px-2 py-3">ID Pedido</th>
+                    <th className="px-2 py-3">Cliente</th>
+                    <th className="hidden lg:table-cell px-2 py-3">Fecha</th>
+                    <th className="px-2 py-3">Total</th>
+                    <th className="px-2 py-3">Estado</th>
+                    <th className="px-2 py-3 text-center">Acciones</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {filteredOrders.length === 0 ? (
+                    <tr>
+                    <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                        {SearchValue ? "No se encontraron pedidos" : "No hay pedidos registrados"}
+                    </td>
+                    </tr>
+                ) : (
+                    filteredOrders.map((order, index) => {
+                    const user = UsersData.find(u => u.id === order.cliente);
+                    const total = calculateTotal(order.id);
+
+                    return (
+                        <tr
+                        key={index}
+                        className="bg-transparent border-b border-gray-300 dark:border-gray-700
+                                    hover:bg-gray-400 dark:hover:bg-gray-600 hover:scale-101 cursor-pointer"
+                        >
+                        <td className="px-2 py-2 font-semibold">#{order.id}</td>
+
+                        <td className="px-2 py-2">
+                            {user ? (
+                            <div className="font-semibold text-gray-900 dark:text-white">
+                                {user.first_name} {user.last_name}
+                            </div>
+                            ) : (
+                            "Usuario no encontrado"
+                            )}
+                        </td>
+
+                        <td className="hidden lg:table-cell px-2 py-2">
+                            {new Date(order.fecha).toLocaleDateString("es-ES", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            })}
+                        </td>
+
+                        <td className="px-2 py-2 font-semibold">₡{total.toFixed(2)}</td>
+
+                        <td className="px-2 py-2">
+                            <div className="flex items-center gap-1">
+                            <div className={`h-2.5 w-2.5 rounded-full ${getStatusColor(order.estado)}`} />
+                            <span className="text-xs">{getStatusLabel(order.estado)}</span>
+                            </div>
+                        </td>
+
+                        <td className="px-2 py-2">
+                            <div className="flex justify-center gap-2">
+                            <button
+                                onClick={e => {
+                                e.stopPropagation();
+                                handleViewOrderDetail(order);
+                                }}
+                                className="flex gap-1 items-center justify-center text-white
+                                        bg-emerald-500 hover:bg-emerald-600
+                                        focus:ring-2 focus:ring-emerald-400
+                                        rounded-lg text-sm px-3 py-1"
+                            >
+                                <Eye size={18} />
+                                <span className="hidden md:inline">Ver detalle</span>
+                            </button>
+
+                            <button
+                                onClick={e => {
+                                e.stopPropagation();
+                                handleDeleteOrder(order.id);
+                                }}
+                                className="flex gap-1 items-center justify-center text-white
+                                        bg-[#ff011f89] hover:bg-[#ff011f]
+                                        focus:ring-2 focus:ring-[#ff011f]
+                                        rounded-lg text-sm px-3 py-1"
+                            >
+                                <Trash2 size={18} />
+                                <span className="hidden md:inline">Eliminar</span>
+                            </button>
+                            </div>
+                        </td>
                         </tr>
-                    </thead>
-
-                    <tbody>
-                        {filteredOrders.length === 0 ? (
-                            <tr>
-                                <td colSpan="6" className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
-                                    {SearchValue ? "No se encontraron pedidos" : "No hay pedidos registrados"}
-                                </td>
-                            </tr>
-                        ) : (
-                            filteredOrders.map((order, index) => {
-                                const user = UsersData.find(u => u.id === order.cliente);
-                                const total = calculateTotal(order.id);
-
-                                return (
-                                    <tr
-                                        key={index}
-                                        className="bg-transparent dark:border-gray-700 border-gray-300 border-b-1 hover:bg-gray-400 dark:hover:bg-gray-600 hover:scale-101 cursor-pointer"
-                                    >
-                                        <td className="px-2 py-2 font-semibold">#{order.id}</td>
-                                        <td className="px-2 py-2">
-                                            {user ? (
-                                                <div>
-                                                    <div className="font-semibold text-gray-900 dark:text-white">
-                                                        {user.first_name} {user.last_name}
-                                                    </div>
-                                                    {/* <div className="hidden md:block text-xs text-gray-500 dark:text-gray-400">
-                                                        {user.email}
-                                                    </div> */}
-                                                </div>
-                                            ) : (
-                                                "Usuario no encontrado"
-                                            )}
-                                        </td>
-                                        <td className="hidden lg:table-cell px-2 py-2">
-                                            {new Date(order.fecha).toLocaleDateString("es-ES", {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric"
-                                            })}
-                                        </td>
-                                        <td className="px-2 py-2 font-semibold">₡{total.toFixed(2)}</td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex items-center gap-1">
-                                                <div className={`h-2.5 w-2.5 rounded-full ${getStatusColor(order.estado)}`}></div>
-                                                <span className="text-xs">{getStatusLabel(order.estado)}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex justify-center gap-2">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleViewOrderDetail(order);
-                                                    }}
-                                                    className="flex gap-1 items-center justify-center text-white bg-[#0191ff60] hover:bg-[#0191ff] focus:ring-2 focus:outline-none focus:ring-[#0191ff] font-medium rounded-lg text-sm px-3 py-2"
-                                                >
-                                                    <Eye size={18} />
-                                                    <span className="hidden md:inline">Ver detalle</span>
-                                                </button>
-
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleDeleteOrder(order.id);
-                                                    }}
-                                                    className="flex gap-1 items-center justify-center text-white bg-[#ff011f89] hover:bg-[#ff011f] focus:ring-2 focus:outline-none focus:ring-[#ff011f] font-medium rounded-lg text-sm px-3 py-2"
-                                                >
-                                                    <Trash2 size={18} />
-                                                    <span className="hidden md:inline">Eliminar</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                        )}
-                    </tbody>
-                </table>
+                    );
+                    })
+                )}
+                </tbody>
+            </table>
             </div>
 
             {/* Modal Agregar Pedido */}
@@ -778,17 +795,6 @@ function OrdersList() {
                                                 <option className="bg-emerald-600" value="cancelado">Cancelado</option>
                                             </select>
                                         </div>
-
-                                        {!SelectedOrder.pagado && (
-                                        <button
-                                            onClick={handleMarkAsPaid}
-                                            className="mt-4 w-full px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl transition-all"
-                                        >
-                                            Marcar como pagado
-                                        </button>
-                                    )}
-
-
                                     </div>
 
                                     {/* Card de Total */}
@@ -1086,24 +1092,30 @@ function OrdersList() {
                                                         </a>
                                                     </p>
 
-                                                        <p>
+                                                    <div>
                                                         <span className="text-emerald-200">Teléfono:</span>{" "}
-                                                        <a
+                                                        {userInfo.telefono ? (
+                                                            <a
                                                             href={`https://wa.me/${userInfo.telefono.replace(/\D/g, "")}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             className="text-blue-600 dark:text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition"
-                                                        >
+                                                            >
                                                             {userInfo.telefono}
-                                                        </a>
-                                                        </p>
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-white">No registrado</span>
+                                                        )}
+                                                    </div>
 
-
-                                                    <p>
+                                                    <div>
                                                         <span className="text-emerald-200">Dirección:</span>{" "}
-                                                        {userInfo.direccion}
-                                                    </p>
-
+                                                        {userInfo.direccion ? (
+                                                            <p className="max-h-15 text-white break-words overflow-y-auto"> {userInfo.direccion} </p>
+                                                        ) : (
+                                                            <span className="tex-white">No registrada</span>
+                                                        )}
+                                                    </div>
                                                 </div>
 
                                             </div>
