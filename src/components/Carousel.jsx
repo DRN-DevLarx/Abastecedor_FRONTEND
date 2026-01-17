@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { GetData } from "../services/ApiServices";
 
 function Carousel3D() {
-  const [images, setImages] = useState(localImages);
+  const [images, setImages] = useState();
   const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
