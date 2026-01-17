@@ -43,7 +43,7 @@ function Statistics() {
 
         const fetchData = async () => {
           const UsersData = await GetData("users/")
-          const ProductsData = await GetData("productos/")
+          const ProductsData = await GetData("productosAdmin/")
 
           if (UsersData) {
 

@@ -1,171 +1,163 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { GetData } from '../services/ApiServices'
 
 function Messages() {
-
-    const [ConsultsData, setConsultsData] = useState([])
-    const [UsersData, setUsersData] = useState()
-    const [User, setUser] = useState()
-    const [SearchValue, setSearchValue] = useState("")
+    const [consults, setConsults] = useState([])
+    const [users, setUsers] = useState([])
+    const [query, setQuery] = useState("")
+    const [selected, setSelected] = useState(null)
+    const [composer, setComposer] = useState("")
+    const listRef = useRef(null)
 
     useEffect(() => {
-
         const fetchData = async () => {
-            const GetConsultsData = await GetData("consultas/");
-            const GetUsersData = await GetData("users/");
+            const c = await GetData('consultas/')
+            const u = await GetData('users/')
+            if (c) setConsults(c)
+            if (u) setUsers(u)
+        }
+        fetchData()
+    }, [])
 
-            if ( GetConsultsData && GetUsersData) {
-                setConsultsData(GetConsultsData);
-                setUsersData(GetUsersData);
-            }
-        };
-        fetchData();
-    }, []);
-
-
-    function FilterConsults(consults, users, searchValue) {
-        if (!searchValue || searchValue.trim() === "") return consults;
-
-        const inputLowerCase = searchValue.toLowerCase();        
-
-        return consults.map(consult => {
-            // const category = users.find(user => user.id == consult.user);
-            // const categoryName = category ? category.nombre.toLowerCase() : "";            
-
+    const filterConsults = (items, q) => {
+        if (!q || q.trim() === '') return items
+        const s = q.toLowerCase()
+        return items.filter((it) => {
             return (
-                consult.nombre_completo.toLowerCase().includes(inputLowerCase)
-                // // (consult.descripcion?.toLowerCase().includes(inputLowerCase)) ||
-                // (consult.correo?.toLowerCase().includes(inputLowerCase)) ||
-                // (consult.asunto?.toLowerCase().includes(inputLowerCase)) ||
-                // (consult.mensaje?.toLowerCase().includes(inputLowerCase))
-                // // categoryName.includes(inputLowerCase) ||
-                
-            );
-
-  
-
-
-        });
+                (it.nombre_completo || '').toLowerCase().includes(s) ||
+                (it.asunto || '').toLowerCase().includes(s) ||
+                (it.mensaje || '').toLowerCase().includes(s) ||
+                (it.correo || '').toLowerCase().includes(s)
+            )
+        })
     }
 
-    
-    let filteredConsults = FilterConsults(ConsultsData, UsersData, SearchValue);
-    console.log(ConsultsData)
+    const items = filterConsults(consults, query)
+
+    const handleSelect = (item) => {
+        setSelected(item)
+        // scroll messages container to bottom if desired
+        setTimeout(() => {
+            if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight
+        }, 50)
+    }
+
+    const handleSend = () => {
+        if (!composer.trim()) return
+        // read-only view — do not POST here; just append locally for preview
+        const newMsg = {
+            id: Date.now(),
+            nombre_completo: 'Tú',
+            asunto: '',
+            mensaje: composer,
+            correo: null,
+            created_at: new Date().toISOString(),
+        }
+        // append locally to selected view (non-persistent)
+        setSelected((prev) => (prev ? { ...prev, _localReplies: [...(prev._localReplies || []), newMsg] } : prev))
+        setComposer('')
+        setTimeout(() => {
+            if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight
+        }, 50)
+    }
 
     return (
-        <>
-            <div class="w-[80%] mx-auto mt-20 z-0 p-2 mb-4 border border-gray-100 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
+        <div className="w-[95%] mx-auto py-8">
+            <div className="grid md:grid-cols-3 gap-6">
+                {/* Left - Conversations */}
+                <div className="md:col-span-1">
+                    <div className="backdrop-blur-xl bg-white/5 dark:bg-gray-800 rounded-[10px] p-4 shadow-2xl">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold">Mensajes</h3>
+                            <span className="text-sm text-gray-400">{items.length}</span>
+                        </div>
 
-                <time class="text-lg font-semibold text-gray-900 dark:text-white">January 13th, 2022</time>
-                <ol class="mt-3 divide-y divide-gray-200 dark:divide-gray-700">
-                
-                {filteredConsults.map((consults, index) => (
-                    <li key={index}>
-                        <a href="#" class="items-center block p-3 sm:flex hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <img class="w-12 h-12 mb-3 me-3 rounded-full sm:mb-0" src="/docs/images/people/profile-picture-1.jpg" alt="Jese Leos image"/>
-                            <div class="text-gray-600 dark:text-gray-400">
-                                <div class="text-base font-normal"><span class="font-medium text-gray-900 dark:text-white"> {consults.asunto} </span></div>
-                                <div class="text-sm font-normal"> {consults.mensaje} </div>
-                                <span class="inline-flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-                                    <svg class="w-2.5 h-2.5 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 .5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19ZM8.374 17.4a7.6 7.6 0 0 1-5.9-7.4c0-.83.137-1.655.406-2.441l.239.019a3.887 3.887 0 0 1 2.082 2.5 4.1 4.1 0 0 0 2.441 2.8c1.148.522 1.389 2.007.732 4.522Zm3.6-8.829a.997.997 0 0 0-.027-.225 5.456 5.456 0 0 0-2.811-3.662c-.832-.527-1.347-.854-1.486-1.89a7.584 7.584 0 0 1 8.364 2.47c-1.387.208-2.14 2.237-2.14 3.307a1.187 1.187 0 0 1-1.9 0Zm1.626 8.053-.671-2.013a1.9 1.9 0 0 1 1.771-1.757l2.032.619a7.553 7.553 0 0 1-3.132 3.151Z"/>
-                                    </svg>
-                                    {consults.user != null  && "registrado" || "no registrado"}
-                                </span> 
-                            </div>
-                        </a>
-                    </li>
-                ))}                         
-                {/* <li>
-                        <a href="#" class="items-center block p-3 sm:flex hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <img class="w-12 h-12 mb-3 me-3 rounded-full sm:mb-0" src="/docs/images/people/profile-picture-3.jpg" alt="Bonnie Green image"/>
+                        <div className="relative mb-4">
+                            <input
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Buscar por nombre, asunto o mensaje"
+                                className="w-full ps-10 text-sm text-white placeholder-gray-400 border border-gray-300 rounded-lg bg-gray-400/20 focus:ring-[#38664e] focus:border-[#38664e] px-3 py-2"
+                            />
+                            <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none text-gray-300">🔎</div>
+                        </div>
+
+                        <div className="max-h-[60vh] overflow-auto scrollbar-thin scrollbar-thumb-emerald-400 scrollbar-track-transparent">
+                            {items.length === 0 ? (
+                                <div className="text-center text-sm text-gray-400 py-6">No hay mensajes</div>
+                            ) : (
+                                <ul className="space-y-2">
+                                    {items.map((c) => (
+                                        <li key={c.id}>
+                                            <button
+                                                onClick={() => handleSelect(c)}
+                                                className={`w-full text-left p-3 rounded-lg hover:bg-white/10 flex items-start gap-3 ${selected && selected.id === c.id ? 'bg-emerald-600/10' : ''}`}
+                                            >
+                                                <div className="w-12 h-12 rounded-full bg-gray-300/30 flex items-center justify-center text-sm font-semibold text-white">{(c.nombre_completo || 'U').slice(0,1)}</div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="font-medium text-white">{c.nombre_completo}</div>
+                                                        <div className="text-xs text-gray-400">{new Date(c.created_at || c.fecha || Date.now()).toLocaleDateString()}</div>
+                                                    </div>
+                                                    <div className="text-sm text-gray-300 truncate">{c.asunto || c.mensaje}</div>
+                                                </div>
+                                            </button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right - Thread */}
+                <div className="md:col-span-2">
+                    <div className="backdrop-blur-xl bg-white/5 dark:bg-gray-800 rounded-[10px] p-4 shadow-2xl flex flex-col h-[70vh]">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
                             <div>
-                                <div class="text-base font-normal text-gray-600 dark:text-gray-400"><span class="font-medium text-gray-900 dark:text-white">Bonnie Green</span> react to <span class="font-medium text-gray-900 dark:text-white">Thomas Lean's</span> comment</div>
-                                <span class="inline-flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-                                    <svg class="w-2.5 h-2.5 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="m2 13.587 3.055-3.055A4.913 4.913 0 0 1 5 10a5.006 5.006 0 0 1 5-5c.178.008.356.026.532.054l1.744-1.744A8.973 8.973 0 0 0 10 3C4.612 3 0 8.336 0 10a6.49 6.49 0 0 0 2 3.587Z"/>
-                                        <path d="m12.7 8.714 6.007-6.007a1 1 0 1 0-1.414-1.414L11.286 7.3a2.98 2.98 0 0 0-.588-.21l-.035-.01a2.981 2.981 0 0 0-3.584 3.583c0 .012.008.022.01.033.05.204.12.401.211.59l-6.007 6.007a1 1 0 1 0 1.414 1.414L8.714 12.7c.189.091.386.162.59.211.011 0 .021.007.033.01a2.981 2.981 0 0 0 3.584-3.584c0-.012-.008-.023-.011-.035a3.05 3.05 0 0 0-.21-.588Z"/>
-                                        <path d="M17.821 6.593 14.964 9.45a4.952 4.952 0 0 1-5.514 5.514L7.665 16.75c.767.165 1.55.25 2.335.251 6.453 0 10-5.258 10-7 0-1.166-1.637-2.874-2.179-3.407Z"/>
-                                    </svg>
-                                    Private
-                                </span> 
+                                <div className="text-lg font-semibold text-white">{selected ? selected.nombre_completo : 'Selecciona una conversación'}</div>
+                                <div className="text-sm text-gray-400">{selected ? (selected.correo || 'Contacto externo') : 'Aquí verás el hilo de mensajes'}</div>
                             </div>
-                        </a>
-                    </li> */}
-                </ol>
-            </div>
-            <div class="w-[80%] mx-auto z-0 p-2 mb-4 border border-gray-100 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700">
-                <time class="text-lg font-semibold text-gray-900 dark:text-white">January 12th, 2022</time>
-                <ol class="mt-3 divide-y divide-gray-200 dark:divide-gray-700">
-                    <li>
-                        <a href="#" class="items-center block p-3 sm:flex hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <img class="w-12 h-12 mb-3 me-3 rounded-full sm:mb-0" src="/docs/images/people/profile-picture-4.jpg" alt="Laura Romeros image"/>
-                            <div class="text-gray-600 dark:text-gray-400">
-                                <div class="text-base font-normal"><span class="font-medium text-gray-900 dark:text-white">Laura Romeros</span> likes <span class="font-medium text-gray-900 dark:text-white">Bonnie Green's</span> post in <span class="font-medium text-gray-900 dark:text-white"> How to start with Flowbite library</span></div>
-                                <div class="text-sm font-normal">"I wanted to share a webinar zeroheight."</div>
-                                <span class="inline-flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-                                    <svg class="w-2.5 h-2.5 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="m2 13.587 3.055-3.055A4.913 4.913 0 0 1 5 10a5.006 5.006 0 0 1 5-5c.178.008.356.026.532.054l1.744-1.744A8.973 8.973 0 0 0 10 3C4.612 3 0 8.336 0 10a6.49 6.49 0 0 0 2 3.587Z"/>
-                                        <path d="m12.7 8.714 6.007-6.007a1 1 0 1 0-1.414-1.414L11.286 7.3a2.98 2.98 0 0 0-.588-.21l-.035-.01a2.981 2.981 0 0 0-3.584 3.583c0 .012.008.022.01.033.05.204.12.401.211.59l-6.007 6.007a1 1 0 1 0 1.414 1.414L8.714 12.7c.189.091.386.162.59.211.011 0 .021.007.033.01a2.981 2.981 0 0 0 3.584-3.584c0-.012-.008-.023-.011-.035a3.05 3.05 0 0 0-.21-.588Z"/>
-                                        <path d="M17.821 6.593 14.964 9.45a4.952 4.952 0 0 1-5.514 5.514L7.665 16.75c.767.165 1.55.25 2.335.251 6.453 0 10-5.258 10-7 0-1.166-1.637-2.874-2.179-3.407Z"/>
-                                    </svg>
-                                    Private
-                                </span> 
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="items-center block p-3 sm:flex hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <img class="w-12 h-12 mb-3 me-3 rounded-full sm:mb-0" src="/docs/images/people/profile-picture-2.jpg" alt="Mike Willi image"/>
-                            <div>
-                                <div class="text-base font-normal text-gray-600 dark:text-gray-400"><span class="font-medium text-gray-900 dark:text-white">Mike Willi</span> react to <span class="font-medium text-gray-900 dark:text-white">Thomas Lean's</span> comment</div>
-                                <span class="inline-flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-                                    <svg class="w-2.5 h-2.5 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 .5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19ZM8.374 17.4a7.6 7.6 0 0 1-5.9-7.4c0-.83.137-1.655.406-2.441l.239.019a3.887 3.887 0 0 1 2.082 2.5 4.1 4.1 0 0 0 2.441 2.8c1.148.522 1.389 2.007.732 4.522Zm3.6-8.829a.997.997 0 0 0-.027-.225 5.456 5.456 0 0 0-2.811-3.662c-.832-.527-1.347-.854-1.486-1.89a7.584 7.584 0 0 1 8.364 2.47c-1.387.208-2.14 2.237-2.14 3.307a1.187 1.187 0 0 1-1.9 0Zm1.626 8.053-.671-2.013a1.9 1.9 0 0 1 1.771-1.757l2.032.619a7.553 7.553 0 0 1-3.132 3.151Z"/>
-                                    </svg>
-                                    Public
-                                </span> 
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="items-center block p-3 sm:flex hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <img class="w-12 h-12 mb-3 me-3 rounded-full sm:mb-0" src="/docs/images/people/profile-picture-5.jpg" alt="Jese Leos image"/>
-                            <div class="text-gray-600 dark:text-gray-400">
-                                <div class="text-base font-normal"><span class="font-medium text-gray-900 dark:text-white">Jese Leos</span> likes <span class="font-medium text-gray-900 dark:text-white">Bonnie Green's</span> post in <span class="font-medium text-gray-900 dark:text-white"> How to start with Flowbite library</span></div>
-                                <div class="text-sm font-normal">"I wanted to share a webinar zeroheight."</div>
-                                <span class="inline-flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-                                    <svg class="w-2.5 h-2.5 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 .5a9.5 9.5 0 1 0 0 19 9.5 9.5 0 0 0 0-19ZM8.374 17.4a7.6 7.6 0 0 1-5.9-7.4c0-.83.137-1.655.406-2.441l.239.019a3.887 3.887 0 0 1 2.082 2.5 4.1 4.1 0 0 0 2.441 2.8c1.148.522 1.389 2.007.732 4.522Zm3.6-8.829a.997.997 0 0 0-.027-.225 5.456 5.456 0 0 0-2.811-3.662c-.832-.527-1.347-.854-1.486-1.89a7.584 7.584 0 0 1 8.364 2.47c-1.387.208-2.14 2.237-2.14 3.307a1.187 1.187 0 0 1-1.9 0Zm1.626 8.053-.671-2.013a1.9 1.9 0 0 1 1.771-1.757l2.032.619a7.553 7.553 0 0 1-3.132 3.151Z"/>
-                                    </svg>
-                                    Public
-                                </span> 
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" class="items-center block p-3 sm:flex hover:bg-gray-100 dark:hover:bg-gray-700">
-                            <img class="w-12 h-12 mb-3 me-3 rounded-full sm:mb-0" src="/docs/images/people/profile-picture-3.jpg" alt="Bonnie Green image"/>
-                            <div class="text-gray-600 dark:text-gray-400">
-                                <div class="text-base font-normal"><span class="font-medium text-gray-900 dark:text-white">Bonnie Green</span> likes <span class="font-medium text-gray-900 dark:text-white">Bonnie Green's</span> post in <span class="font-medium text-gray-900 dark:text-white"> Top figma designs</span></div>
-                                <div class="text-sm font-normal">"I wanted to share a webinar zeroheight."</div>
-                                <span class="inline-flex items-center text-xs font-normal text-gray-500 dark:text-gray-400">
-                                    <svg class="w-2.5 h-2.5 me-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="m2 13.587 3.055-3.055A4.913 4.913 0 0 1 5 10a5.006 5.006 0 0 1 5-5c.178.008.356.026.532.054l1.744-1.744A8.973 8.973 0 0 0 10 3C4.612 3 0 8.336 0 10a6.49 6.49 0 0 0 2 3.587Z"/>
-                                        <path d="m12.7 8.714 6.007-6.007a1 1 0 1 0-1.414-1.414L11.286 7.3a2.98 2.98 0 0 0-.588-.21l-.035-.01a2.981 2.981 0 0 0-3.584 3.583c0 .012.008.022.01.033.05.204.12.401.211.59l-6.007 6.007a1 1 0 1 0 1.414 1.414L8.714 12.7c.189.091.386.162.59.211.011 0 .021.007.033.01a2.981 2.981 0 0 0 3.584-3.584c0-.012-.008-.023-.011-.035a3.05 3.05 0 0 0-.21-.588Z"/>
-                                        <path d="M17.821 6.593 14.964 9.45a4.952 4.952 0 0 1-5.514 5.514L7.665 16.75c.767.165 1.55.25 2.335.251 6.453 0 10-5.258 10-7 0-1.166-1.637-2.874-2.179-3.407Z"/>
-                                    </svg>
-                                    Private
-                                </span> 
-                            </div>
-                        </a>
-                    </li>
-                </ol>
-            </div>
-        </>
-        
+                            <div className="text-sm text-gray-400">{selected ? new Date(selected.created_at || selected.fecha || Date.now()).toLocaleString() : ''}</div>
+                        </div>
 
+                        <div ref={listRef} className="flex-1 overflow-auto space-y-4 px-1 py-2 scrollbar-thin scrollbar-thumb-emerald-400 scrollbar-track-transparent">
+                            {!selected ? (
+                                <div className="h-full flex items-center justify-center text-gray-400">Selecciona un mensaje a la izquierda para ver detalles</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-white/10 rounded-lg">
+                                        <div className="text-sm text-gray-300">{selected.mensaje}</div>
+                                        <div className="mt-2 text-xs text-gray-400">{selected.asunto}</div>
+                                    </div>
 
+                                    {/* local replies */}
+                                    {(selected._localReplies || []).map((r) => (
+                                        <div key={r.id} className="p-3 bg-emerald-600/10 rounded-lg text-white text-sm">
+                                            <div className="text-sm">{r.mensaje}</div>
+                                            <div className="text-xs text-gray-300 mt-1">{new Date(r.created_at).toLocaleString()}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-white/10">
+                            <div className="flex gap-2">
+                                <input
+                                    value={composer}
+                                    onChange={(e) => setComposer(e.target.value)}
+                                    placeholder={selected ? `Enviar mensaje a ${selected.nombre_completo}` : 'Selecciona una conversación primero'}
+                                    className="flex-1 px-3 py-2 rounded-lg bg-white/10 text-white outline-none focus:ring-2 focus:ring-emerald-400"
+                                    disabled={!selected}
+                                />
+                                <button onClick={handleSend} disabled={!selected || !composer.trim()} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg">Enviar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     )
 }
 

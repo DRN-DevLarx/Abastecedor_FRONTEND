@@ -1,7 +1,7 @@
 import Default_Image from "../assets/Default_Image.jpg";
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { X, ArrowLeft, Bell, BellOff, MoonIcon, Sun, LucideXCircle, LucideTrash } from "lucide-react";
+import { X, ArrowLeft, Bell, BellOff, MoonIcon, Sun, Trash, Edit, Save, ImageIcon, Upload } from "lucide-react";
 import { Login } from "../services/Token/AuthServices";
 import { GetData, PostData, PatchData, DeleteUserData, DeleteData } from "../services/ApiServices";
 import cloudDinaryServices from '../services/cloudDinaryServices';
@@ -11,9 +11,7 @@ import Swal from "sweetalert2";
 import Loader from "./Loader"
 import { useQueryClient } from "@tanstack/react-query";
 
-
 import Alert, { showAlert } from "./Alert";
-import Modal, { showModal } from "./Modal";
 
 function Profile() {
 
@@ -30,7 +28,7 @@ function Profile() {
   const access_token = getCookie("access_token");
   const CurrentIdUser = jwtDecode(access_token).user_id  
   const CurrentUserName = jwtDecode(access_token).username  
-
+  
   const [IdUser, setIdUser] = useState();  
   const [ViewUserAdmin, setViewUserAdmin] = useState(); 
 
@@ -43,7 +41,6 @@ function Profile() {
   const [Address, setAddress] = useState("");
   const [Joined, setJoined] = useState("");
   
-
   const [NewRole, setNewRole] = useState();
   const [NewName, setNewName] = useState("");
   const [NewLastName, setNewLastName] = useState("");
@@ -55,12 +52,10 @@ function Profile() {
   const [NewUserImage, setNewUserImage] = useState("");
   const [NewNotificationsOn, setNewNotificationsOn] = useState(false);
 
-
-  const DefaultImage = Default_Image;
-  
+  const DefaultImage = Default_Image;  
 
   const [UserImages, setUserImages] = useState([])
-  
+
   const [UserImage, setUserImage] = useState();
   const [ImagePreview, setImagePreview] = useState()
   const fileInputRef = useRef(null);
@@ -70,7 +65,8 @@ function Profile() {
   const [Tooltip, setTooltip] = useState(false);
   const [Tooltip2, setTooltip2] = useState(false);
   
-  const [DarkMode, setDarkMode] = useState();
+  const [Theme, setTheme] = useState("");
+  const [DarkMode, setDarkMode] = useState(false);
   const [TextTooltip, setTextTooltip] = useState("");
   const [TextTooltip2, setTextTooltip2] = useState("");
 
@@ -97,9 +93,9 @@ function Profile() {
     } 
 
     if(DarkMode) {
-      setTextTooltip2("oscuro activado")
+      setTextTooltip2("oscuro")
     } else {      
-      setTextTooltip2("normal activado")
+      setTextTooltip2("normal")
     }
 
   }, [NotificationsOn, DarkMode])
@@ -138,6 +134,7 @@ function Profile() {
       const UsersImagesData = await GetData("imagenesUsuarios/");
 
       const UserData = UsersData.find(FindUser => FindUser.id == IdUserCookie)
+      
       const UserImagesData = UsersImagesData.filter(FindUser => FindUser.user == IdUserCookie)
 
       if (UserImagesData) {
@@ -225,8 +222,6 @@ function Profile() {
         
         const NewChanges = decoded;
   
-        console.log(NewChanges);
-  
         setNewRole(NewChanges.ROLE)
         setNewName(NewChanges.NAME)
         setNewLastName(NewChanges.LASTNAME)
@@ -252,14 +247,14 @@ function Profile() {
   
 
   // Escucha cambios de darkMode y aplica la clase
-  useEffect(() => {
-    if (DarkMode) {
+  const ThemeChange = (theme) => {    
+    if (theme === "oscuro") {
       document.documentElement.classList.add("dark");
 
     } else {
       document.documentElement.classList.remove("dark");
     }
-  }, [DarkMode]);
+  }
 
   const handleChange = (value) => {
       if (/^\d*$/.test(value)) {
@@ -305,11 +300,11 @@ function Profile() {
       title: "¿Estás seguro que deseas eliminar la cuenta?",
       text: "Esta acción es irreversible.",
       showCancelButton: true,
-      cancelButtonText: "Cancelar",
+      cancelButtonText: "No, cancelar",
       confirmButtonText: "Sí, eliminar",
       confirmButtonColor: "red",
-      background: "#233876aa",
-      color: "white",
+      background: 'rgba(80, 80, 80, 0.75)',
+      color: 'white',
     }).then((result) => {
       
       if (result.isConfirmed) {
@@ -321,7 +316,6 @@ function Profile() {
   const DeleteContinue = async (password) => {
 
     const IsCorrect = await ValidatePassword(password) 
-    console.log("Es correcta? ", IsCorrect);
     
     
     if (IsCorrect === false) {
@@ -330,22 +324,31 @@ function Profile() {
 
     } else {    
       setShowLoader(true)
-      const responseDeleteUser = await DeleteUserData("eliminarUsuario/", IdUser)
-            
-      setShowLoader(false)
+      console.log(IdUser);
+      console.log(CurrentIdUser);
+      
+      const responseDeleteUser = await DeleteData("users/", IdUser)
 
-      if(responseDeleteUser === 200) {
+      setShowLoader(false)
+      console.log(responseDeleteUser);
+      
+
+      if(responseDeleteUser.status === 204) {
 
         showAlert("success", "ÉXITO", "La cuenta se ha eliminado con éxito");
 
-        setTimeout(() => {
-          navigate("/IniciarSesion")
-        }, 3000);
+        if(IdUser == CurrentIdUser) {
+          setTimeout(() => {
+            navigate("/IniciarSesion")
+          }, 3000);
+        } else {
+          setTimeout(() => {
+            navigate(-1)
+          }, 3000);
+        }
       }
       
     }
-
-
   }
 
   const EditMode = () => {
@@ -421,7 +424,6 @@ function Profile() {
           
           if(SameEmail) {            
             EnterPassword(UpdateProfile,)
-            console.log("Aqui va");
             
 
           } else {
@@ -429,11 +431,11 @@ function Profile() {
               icon: 'info',
               text: '¿El correo electrónico es correcto?.',
               showCancelButton: true,
-              cancelButtonText: 'verificar',
+              cancelButtonText: 'No, corregir',
               confirmButtonText: 'Si, continuar',
+              confirmButtonColor: '#10B981',
               reverseButtons: true,
-              confirmButtonColor: '#3B82F6',
-              background: '#233876aa',
+              background: 'rgba(80, 80, 80, 0.75)',
               color: 'white'
             }).then((result) => {
 
@@ -452,7 +454,7 @@ function Profile() {
   const EnterPassword = async (NexFunction) => {
     
     let ButtonText = "Aceptar"
-    let ButtonColor = "#3B82F6"
+    let ButtonColor = "#10B981"
     
     if(NexFunction == DeleteContinue) {
       ButtonText = "Eliminar"
@@ -471,20 +473,20 @@ function Profile() {
       cancelButtonText: "Cancelar",
       confirmButtonText: ButtonText,
       confirmButtonColor: ButtonColor,
-      background: "#233876aa",
-      color: "white",
+      background: 'rgba(80, 80, 80, 0.75)',
+      color: 'white',
       html: `
-        <div className ="h-16 w-full relative">
+        <div class ="h-16 w-full">
           <input 
             type="password" 
             id="swalPassword" 
-            className ="p-2 w-[60%] bg-transparent rounded-[5px] border border-gray-500 text-white" 
+            class ="relative mx-auto w-[60%] text-emerald-500 px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all placeholder-white/40" 
             placeholder="Contraseña"
           />
           <button 
             type="button" 
             id="togglePassword" 
-            className ="absolute top-[10px] right-[23%] text-gray-400 hover:text-white"
+            classN ="absolute top-[10px] text-gray-400 hover:text-white"
           >
             <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className ="bi bi-eye-fill" viewBox="0 0 16 16">
               <path d="M10.5 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0"/>
@@ -534,8 +536,6 @@ function Profile() {
     
     setShowLoader(true);    
 
-    console.log(CurrentUserName);
-    console.log(password);
     
     
     const endpoint = "token/";
@@ -544,7 +544,6 @@ function Profile() {
         password: password,
       });
       
-      console.log(responseLogin);
       
       setShowLoader(false);    
     
@@ -570,7 +569,7 @@ function Profile() {
 
       setShowLoader(true);
   
-      let Theme = DarkMode ? "oscuro" : "normal";
+      let theme = DarkMode ? "oscuro" : "normal";
       let ImageStatus = "same"; // valor por defecto
   
       if (UserImage === DefaultImage) {
@@ -611,11 +610,11 @@ function Profile() {
             direccion: Address,
             referenciaIMG, 
             notificaciones: NotificationsOn,
-            tema: Theme,
+            tema: theme,
           });
   
           if (responseUpdateInfoUser.status === 200 || responseUpdateInfoUser.status === 201) {
-  
+            ThemeChange(theme)
             showAlert("success", "Éxito", "Perfil editado con éxito.");
   
             queryClient.invalidateQueries(["user"]);
@@ -707,7 +706,6 @@ function Profile() {
   const RequestCode = async (password) => {
 
     const IsCorrect = await ValidatePassword(password)
-    console.log("Es correcta?: ", IsCorrect);
     
     
     if (IsCorrect === false) {
@@ -726,12 +724,9 @@ function Profile() {
       
       if (response.status === 200) {
         
-        console.log(typeof UserImage);
-        console.log(UserImage);
         
         const TOKEN = await GenerateToken({NOTIFICATIONS: NotificationsOn, DARKMODE: DarkMode, IMG: UserImage, NAME: Name, LASTNAME: LastName, USERNAME: UserName, EMAIL: Email, PHONE: Phone, ROLE: Role, ADDRESS: Address}, "NewChanges");
         
-        console.log(jwtDecode(TOKEN));
         
 
         if(TOKEN) {
@@ -840,7 +835,7 @@ function Profile() {
     }
   }
 
-    const UploadImage = async (file) => {
+  const UploadImage = async (file) => {
 
     try {
       setShowLoader(true);
@@ -855,7 +850,6 @@ function Profile() {
           referenciaIMG: uploadedUrl,
         });
 
-        console.log(responseUpdateInfoUser);
 
         if (responseUpdateInfoUser) {
           const responseUploadNewImage = await PostData("imagenesUsuarios/", {
@@ -915,204 +909,400 @@ function Profile() {
 
   const DeleteImage = async (IdImage) => {
 
-    showModal(
-      "ELIMINAR IMAGEN",
-      "Vas a eliminar una imagen. Esta acción es irreversible.",
-      "¿Deseas continuar?",
-      "CONFIRMAR",
-      async () => {
-        setShowLoader(true)
-        try {
-          const response = await DeleteData("imagenesUsuarios/", IdImage);
-          setShowLoader(false)
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: "¿Estás seguro que deseas eliminar la imagen?",
+      text: "Esta acción es irreversible.",
+      showCancelButton: true,
+      cancelButtonText: 'No, cancelar',
+      confirmButtonText: 'Sí, eliminar',
+      confirmButtonColor: 'red',
+      reverseButtons: true,
+      background: 'rgba(80, 80, 80, 0.75)',
+      color: 'white'
+    });
 
-          if (response) {
-            setUserImages((prev) => prev.filter(img => img.id !== IdImage));
-            showAlert("success", "ÉXITO", "La imagen ha sido eliminada con éxito.");
+    // Si no confirma, salimos
+    if (!result.isConfirmed) return;
 
-          }
-        } catch (err) {
-          setShowLoader(false)
-          showAlert("error", "ERROR", "No se pudo eliminar la imagen.");
-          console.error(err);
-        }
-      },
-      "bg-[#f8040479]"
-    )
-  }
+    // Solo entra aquí si el usuario confirmó
+    setShowLoader(true);
+
+    try {
+      const response = await DeleteData("imagenesUsuarios/", IdImage);
+
+      if (response) {
+        setUserImages(prev => prev.filter(img => img.id !== IdImage));
+        showAlert("success", "ÉXITO", "La imagen ha sido eliminada con éxito.");
+      }
+
+    } catch (err) {
+      showAlert("error", "ERROR", "No se pudo eliminar la imagen.");
+      console.error(err);
+    } finally {
+      setShowLoader(false);
+    }
+  };
+
 
   return (
     <div>
       {ShowLoader && (
         <Loader/>
       )}
-      <div className="bg-[#adb6aaa8] dark:bg-[#171731] dark:text-[#CEC19F] min-h-screen sm:p-10 p-5 text-black">  {/*lg:px-40*/}
+      <div className="bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F] min-h-screen sm:p-10 p-5 text-black">  {/*lg:px-40*/}
       
 
       <Alert />
-      <Modal /> 
 
         {/* Header */}
-        <Link to={-1} className="flex items-center mb-6 gap-1 hover:scale-101">
+        <Link to={-1} className="flex items-center mb-6 gap-1 hover:scale-101 ">
             <ArrowLeft size={24} />
-             <h2 className="text-2xl font-bold"> Perfil </h2>
+             <h2 className="text-2xl font-bold text-white mb-1"> Perfil de usuario</h2>
         </Link>
 
         {Mode != "verify" &&
-        <div className="bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] lg:mx-20 p-6 sm:p-10 rounded-xl shadow flex flex-col md:flex-row items-center md:items-start gap-6 relative">
+          <div className="fixed inset-0 z-40 bg-[#83917f7c] dark:bg-[#171731] backdrop-blur-md overflow-hidden">
+            <div className="h-full overflow-y-auto p-5">
+              <div className="w-full sm:w-[90%] mx-auto">
 
-          {/* Avatar */}
-          <div className="relative w-[100%] md:w-[30%] mt-10">
-            <div className="relative mx-auto w-[150px]">     
-
-              {Mode === "edit" && UserImage !== DefaultImage &&
-                <button 
-                  className="absolute right-0 hover:scale-130"
-                  onClick={() => DeleteUserImage()}
-                  >
-                  <X size={24} />
-                </button>
-              } 
-
-              <img
-                src={ImagePreview || UserImage}
-                alt="Imagen de usuario"
-                className="mx-auto w-32 h-32 rounded-full border-4 border-[#334155] object-cover cursor-pointer"
-                onClick={() => Mode === "edit" && setShowUploadedImages(true)}
-                />
-                
-              {Mode === "edit" && 
-                <p className="text-xs dark:text-gray-400  mt-2 text-center">
-                  Haz clic en la foto para cambiarla
-                </p>
-              }
-            </div>
-
-          </div>
-
-          {/* Info */}
-          <div className="flex-1 space-y-4 w-full">
-            {Mode == "normal" &&
-              <>
-                <h3 className="text-xl font-semibold">{Name} {LastName} ({UserName})</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div><span className="font-medium">Correo</span><p className="text-black opacity-70 dark:text-white dark:opacity-50">{Email}</p></div>
-                  <div><span className="font-medium">Teléfono</span><p className="text-black opacity-70 dark:text-white dark:opacity-50">{Phone || "No hay número registrado"}</p></div>
-                  <div><span className="font-medium">Rol</span><p className="text-black opacity-70 dark:text-white dark:opacity-50">{Role}</p></div>
-                  <div>
-                    <span className="font-medium">Se unió el</span>
-                    <p className="text-black opacity-70 dark:text-white dark:opacity-50"> 
-                      {Joined ? new Date(Joined).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric" }) : ""}
-                    </p>
-                  </div>
-                </div>
-                <div><span className="font-medium block">Dirección</span><p className="text-black opacity-70 dark:text-white dark:opacity-50">{Address || "No hay dirección registrada"}</p></div>
-
-              { (IdUser == CurrentIdUser || ViewUserAdmin) &&
-                <>
-                  <div className="mt-4 flex gap-3">
-                    <button onClick={DeleteAccount} className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg">Eliminar cuenta</button>
-                    <button onClick={EditMode} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg">Editar Perfil</button>
-                  </div>
-                </>
-              } 
-              </>
-              }
-              {Mode === "edit" &&
-              <>
-                {/* Formulario de edición */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Botones arriba a la derecha */}
-                  <div className="absolute top-4 right-4 flex gap-3">
-                    <button
-                      onClick={() => {setNotificationsOn(!NotificationsOn); setTooltip(!Tooltip)}}
-                      className="relative p-2 bg-white opacity-60 dark:bg-[#334155] rounded-full hover:bg-[#475569] transition"
-                    >
-                      {NotificationsOn ? <BellOff size={20} /> : <Bell size={20} />}
-                    </button>
-
-                    {Tooltip && (
-                      <div className ="absolute z-10 -top-15 inline-block px-3 py-1 text-sm font-medium text-white bg-gray-900 rounded-lg dark:bg-blue-900">
-
-                          Notificaciones {TextTooltip}
-                          <div className ="tooltip-arrow" data-popper-arrow></div>
-
-                          <div className="hidden">
-                            {setTimeout(() => {
-                              setTooltip(!Tooltip)
-                            }, 1000)}
-                          </div>
+                {/* Header */}
+                <div className="relative mb-6">
+                  <div className="rounded-[10px] p-6 shadow-2xl backdrop-blur-xl">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h1 className="text-2xl font-bold text-white mb-1">
+                          
+                          {Mode === "normal" ? "Vista de Perfil" : "Modo Edición"}
+                        </h1>
+                        <p className="text-emerald-200">
+                          {Mode === "normal" ? "Información y configuración de la cuenta" : "Edita la información y configuración de la cuenta"}
+                        </p>
                       </div>
-                    )}
-
-                    <button
-                      onClick={() => {setDarkMode(!DarkMode); setTooltip2(!Tooltip2)}}
-                      className="p-2 bg-white opacity-60 dark:bg-[#334155] rounded-full hover:bg-[#475569] transition"
+                      <button
+                        onClick={() => {Mode === "normal" ? navigate(-1) : CancelEdit()}}
+                        className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-2 rounded-2xl"
                       >
-                      {DarkMode ? <Sun size={20} /> : <MoonIcon size={20} />}
-                    </button>
+                        <X size={28} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-                    {Tooltip2 && (
-                      <div className ="absolute z-10 -top-15 w-25 left-12 inline-block px-3 py-1 text-sm font-medium text-white bg-gray-900 rounded-lg dark:bg-blue-900">
+                <div className="grid lg:grid-cols-3 gap-6">
 
-                          Tema {TextTooltip2}
-                          <div className ="tooltip-arrow" data-popper-arrow></div>
+                  {/* Columna izquierda */}
+                  <div className="col-span-3 lg:col-span-2 space-y-4">
 
-                          <div className="hidden">
-                            {setTimeout(() => {
-                              setTooltip2(!Tooltip2)
-                            }, 1000)}
+                    {/* Información personal */}
+                    <div className="backdrop-blur-xl rounded-[10px] px-2 py-4 sm:p-6 sm:py-6 sm:shadow-2xl lg:h-100">
+
+                      {Mode === "normal" ? (
+                        <div className="grid sm:grid-cols-2 gap-4 text-white/80">
+
+                          {/* Configuaración */}
+                          <div className="col-span-2 w-full h-10 relative">
+
+                            <div className="absolute right-0 flex gap-3 ">
+                              <span className="p-2 bg-gray-400 opacity-60 dark:bg-[#334155] rounded-full hover:bg-[#475569] transition ">
+                                {NotificationsOn ? <BellOff size={20} /> : <Bell size={20} />}
+                              </span>
+
+                              <span className="p-2 bg-gray-400 opacity-60 dark:bg-[#334155] rounded-full hover:bg-[#475569] transition">
+                                {DarkMode ? <Sun size={20} /> : <MoonIcon size={20} />}
+                              </span>
+
+                            </div>
+
                           </div>
+                          
+                          <div className="col-span-2 lg:hidden flex flex-col items-center rounded-[10px] px-2 lg:py-15 h-35 lg:h-1000 text-center mb-2">
+                            
+                            {/* Avatar */}
+                            <div className="relative mx-auto w-36">
+
+                              <img
+                                src={ImagePreview || UserImage || DefaultImage}
+                                alt="Imagen de usuario"
+                                className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-cover cursor-pointer"
+                                onClick={() => Mode === "edit" && setShowUploadedImages(true)}
+                              />
+                            </div>
+                          </div>
+
+                          <div><span className="text-emerald-200">Nombre</span><p>{Name} {LastName}</p></div>
+                          <div><span className="text-emerald-200">Usuario</span><p>{UserName}</p></div>
+                          <div><span className="text-emerald-200">Correo</span><p>{Email}</p></div>
+                          <div><span className="text-emerald-200">Teléfono</span><p>{Phone || "No registrado"}</p></div>
+                          <div><span className="text-emerald-200">Rol</span><p>{Role}</p></div>
+                          <div>
+                            <span className="text-emerald-200">Se unió el</span><p>{Joined? new Date(Joined).toLocaleDateString("es-ES", 
+                              {
+                                day: "2-digit",
+                                month: "long",
+                                year: "numeric",
+                              })
+                              : ""}
+
+                            </p></div>
+
+                          <div className="col-span-2" >
+                            <span className="text-emerald-200">Dirección</span>
+                            <p className="break-words max-h-20 overflow-y-aut " >{Address || "No hay dirección registrada"}</p>
+                          </div>
+              
+                          {/* Acciones */}
+                          {(IdUser == CurrentIdUser || ViewUserAdmin) && (
+                            <div className="col-span-2 lg:absolute bottom-8 mt-2 flex flex-col w-full sm:flex-row sm:justify-end gap-2 sm:gap-4 lg:hidden">
+                              
+                                <button
+                                  onClick={DeleteAccount}
+                                  className="flex gap-1 px-4 py-3 sm:px-4 sm:py-2 bg-red-500/80 hover:bg-red-600 text-white rounded-sm justify-center"
+                                >
+                                <Trash/> {ViewUserAdmin && IdUser !== CurrentIdUser ? "Eliminar usuario" : "Eliminar cuenta"}
+                                </button>
+
+                                <button
+                                  onClick={EditMode}
+                                  className="flex gap-1 px-4 py-3 sm:px-4 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-sm justify-center"
+                                >
+                                  <Edit/> Editar <span className="inline sm:hidden">perfil</span>
+                                </button>
+                              
+                            </div>
+                          )}    
+                        </div>
+                        
+                      ) : (
+                                            
+                        <div className="grid sm:grid-cols-4 gap-4">
+
+                          {/* Configuaración */}
+                          <div className="col-span-4 w-full h-10 relative">
+                            <div className="absolute right-0 flex gap-3 ">
+
+                              <button
+                                onClick={() => {setNotificationsOn(!NotificationsOn); setTooltip(!Tooltip)}}
+                                className="relative p-2 bg-white opacity-60 dark:bg-[#334155] rounded-full hover:bg-[#475569] transition"
+                              >
+                                {NotificationsOn ? <BellOff size={20} /> : <Bell size={20} />}
+                              </button>
+
+                              {Tooltip && (
+                                <div className ="absolute z-10 -top-15 inline-block px-3 py-1 text-sm font-medium text-white bg-gray-900 rounded-lg dark:bg-blue-900">
+
+                                    Notificaciones {TextTooltip}
+                                    <div className ="tooltip-arrow" data-popper-arrow></div>
+
+                                    <div className="hidden">
+                                      {setTimeout(() => {
+                                        setTooltip(!Tooltip)
+                                      }, 1000)}
+                                    </div>
+                                </div>
+                              )}
+
+                              <button
+                                onClick={() => {setDarkMode(!DarkMode); setTooltip2(!Tooltip2)}}
+                                className="p-2 bg-white opacity-60 dark:bg-[#334155] rounded-full hover:bg-[#475569] transition"
+                                >
+                                {DarkMode ? <Sun size={20} /> : <MoonIcon size={20} />}
+                              </button>
+
+                              {Tooltip2 && (
+                                <div className ="absolute z-10 -top-15 w-25 left-12 inline-block px-3 py-1 text-sm font-medium text-white bg-gray-900 rounded-lg dark:bg-blue-900">
+
+                                    Tema {TextTooltip2}
+                                    <div className ="tooltip-arrow" data-popper-arrow></div>
+
+                                    <div className="hidden">
+                                      {setTimeout(() => {
+                                        setTooltip2(!Tooltip2)
+                                      }, 1000)}
+                                    </div>
+                                </div>
+                              )}        
+                            </div>
+                          </div>
+
+                          {/* Avatar */}
+                          <div className="col-span-4 lg:hidden flex flex-col items-center rounded-[10px] lg:py-15 lg:h-1000 text-center">
+                            <div className="relative mx-auto w-36">
+                              {Mode === "edit" && UserImage !== DefaultImage && (
+                                <button
+                                  className="absolute right-0 -top-2 text-white/80 hover:text-red-400 transition"
+                                  onClick={DeleteUserImage}
+                                >
+                                  <X size={22} />
+                                </button>
+                              )}
+
+                              <img
+                                src={ImagePreview || UserImage || DefaultImage}
+                                alt="Imagen de usuario"
+                                className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-cover cursor-pointer"
+                                onClick={() => Mode === "edit" && setShowUploadedImages(true)}
+                              />
+
+                              <p className="text-sm text-emerald-200 mt-3">
+                                Haz clic en la foto para cambiarla
+                              </p>
+                            
+                            </div>                
+                          </div>
+
+                          <div className="col-span-1">
+                            <span className="text-emerald-200">Nombre</span>
+                            <input 
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                            value={Name} onChange={e => setName(e.target.value)} placeholder="Nombre" />
+                          </div>
+
+                          <div className="col-span-1">
+                            <span className="text-emerald-200">Apellido</span>
+                            <input
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                            value={LastName} onChange={e => setLastName(e.target.value)} placeholder="Apellido" />
+                          </div>
+
+                          <div className="col-span-2">
+                            <span className="text-emerald-200">Usuario</span>
+                            <input
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                            value={UserName} onChange={e => setUserName(e.target.value)} placeholder="Usuario" />
+                          </div>
+
+                          <div className="col-span-2">
+                            <span className="text-emerald-200">Correo</span>
+                            <input
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                            value={Email} onChange={e => setEmail(e.target.value)} placeholder="Correo" />
+                          </div>
+
+                          <div className="col-span-2">
+                            <span className="text-emerald-200">Teléfono</span>
+                            <input
+                            className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-transparent outline-none transition-all text-white placeholder-white/40"
+                            value={Phone} onChange={e => setPhone(e.target.value)} placeholder="Teléfono" />
+                          </div>
+
+                          <div className="col-span-4">
+                            <span className="text-emerald-200">Dirección</span>
+                            <textarea
+                              rows={3}
+                              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-2xl focus:ring-2 focus:ring-emerald-400 outline-none text-white resize-none"
+                              value={Address}
+                              onChange={(e) => setAddress(e.target.value)}
+                            />
+                          </div>
+
+                          {/* Acciones */}
+                          {(IdUser == CurrentIdUser || ViewUserAdmin) && (
+                            <div className="col-span-4 lg:absolute bottom-8 mt-2 flex flex-col w-full sm:flex-row sm:justify-end gap-2 sm:gap-4 lg:hidden">
+                              
+                                  <button
+                                    onClick={CancelEdit}
+                                    className="flex gap-1 px-4 py-3 sm:px-4 sm:py-2  bg-white/10 hover:bg-white/20 text-white rounded-sm justify-center"
+                                  >
+                                    <X/>
+                                    Cancelar
+                                  </button>
+                                  <button
+                                    onClick={EditSave}
+                                    className="flex gap-1 px-4 py-3 sm:px-4 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-sm justify-center"
+                                  >
+                                    <Save/>
+                                    Guardar
+                                  </button>
+                              
+                            </div>
+                          )}
+
+                        </div>
+                      )}
+                    </div>
+
+                  </div>
+
+
+                  {/* Columna derecha */}              
+                  <div className="col-span-3 lg:col-span-1 hidden lg:flex flex-col items-center backdrop-blur-xl rounded-[10px] px-2 py-7 lg:py-15 lg:h-100 shadow-2xl text-center">
+                  
+                    {/* Avatar */}
+                    <div className="relative w-36 mx-auto">
+                      {Mode === "edit" && UserImage !== DefaultImage && (
+                        <button
+                          className="absolute right-0 -top-2 text-white/80 hover:text-red-400 transition"
+                          onClick={DeleteUserImage}
+                        >
+                          <X size={22} />
+                        </button>
+                      )}
+
+                      <img
+                        src={ImagePreview || UserImage || DefaultImage}
+                        alt="Imagen de usuario"
+                        className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-cover cursor-pointer"
+                        onClick={() => Mode === "edit" && setShowUploadedImages(true)}
+                      />
+
+                      {Mode === "edit" && (
+                        <p className="text-sm text-emerald-200 mt-3">
+                          Haz clic en la foto para cambiarla
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Acciones */}
+                    {(IdUser == CurrentIdUser || ViewUserAdmin) && (
+                      <div className="absolute w-[80%] bottom-4 py-6 flex flex-col gap-2">
+                        
+                        {Mode === "normal" ? (
+                          <>
+                            <button
+                              onClick={DeleteAccount}
+                              className=" flex gap-1 px-4 py-2 bg-red-500/80 hover:bg-red-600 text-white justify-center rounded-sm transition"
+                            >
+                              <Trash/> {ViewUserAdmin && IdUser !== CurrentIdUser ? "Eliminar usuario" : "Eliminar cuenta"}
+                            </button>
+
+                            <button
+                              onClick={EditMode}
+                              className="flex gap-1 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white justify-center rounded-sm transition"
+                            >
+                              <Edit/>
+                              Editar perfil
+                            </button>
+
+                          </>
+                          
+                        ) : (
+                          <>
+                            <button
+                              onClick={CancelEdit}
+                              className="flex gap-1 px-4 py-3 sm:px-4 sm:py-2  bg-white/10 hover:bg-white/20 text-white rounded-sm justify-center"
+                            >
+                              <X/>
+                              Cancelar
+                            </button>
+                            <button
+                              onClick={EditSave}
+                              className="flex gap-1 px-4 py-3 sm:px-4 sm:py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-sm justify-center"
+                            >
+                              <Save/>
+                              Guardar cambios
+                            </button>
+                          </>
+                        )}
                       </div>
                     )}
 
                   </div>
                   
-                  <div className="col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="flex flex-col col-span-1">
-                      <span className="font-medium dark:text-white">Nombre</span>
-                      <input className="p-2 inline rounded bg-gray-300 dark:bg-[#334155] focus:outline-[#38664e]" value={Name} onChange={(e) => setName(e.target.value)} />
-                    </div>
-                    <div className="flex flex-col col-span-1">
-                      <span className="font-medium dark:text-white">Apellido</span>
-                      <input className="p-2 inline rounded bg-gray-300 dark:bg-[#334155] focus:outline-[#38664e]" value={LastName} onChange={(e) => setLastName(e.target.value)} />
-                    </div>
-                    <div className="flex flex-col col-span-1">
-                      <span className="font-medium dark:text-white">Usuario</span>
-                      <input className="p-2 rounded bg-gray-300 dark:bg-[#334155] focus:outline-[#38664e]" value={UserName} onChange={(e) => setUserName(e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className=" col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                      <span className="font-medium dark:text-white">Correo</span>
-                      <input className="p-2 rounded bg-gray-300 dark:bg-[#334155] focus:outline-[#38664e]" value={Email} onChange={(e) => setEmail(e.target.value)} />
-                    </div>
-
-                    <div className="flex flex-col">
-                      <span className="font-medium dark:text-white">Teléfono (opcional)</span>
-                      <input className="p-2 rounded bg-gray-300 dark:bg-[#334155] focus:outline-[#38664e]" value={Phone} onChange={(e) => setPhone(e.target.value)} />
-                    </div>
-                  </div>
-                  
-                  <div className="w-[100%] col-span-2">
-                    <span className="font-medium dark:text-white block">Dirección (opcional)</span>
-                    <textarea rows={3} 
-                      className="bg-gray-300 dark:bg-[#334155] focus:outline-none border-0 p-2 rounded w-[100%] resize-none" 
-                      value={Address} onChange={(e) => setAddress(e.target.value)} />
-                  </div>
                 </div>
-
-                <div className="mt-4 flex gap-3">
-                  <button onClick={CancelEdit} className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">Cancelar</button>
-                  <button onClick={EditSave} className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">Guardar cambios</button>
-                </div>
-              </>
-            }
-
-
+              </div>
+            </div>
           </div>
-        </div>
         }
 
         {Mode === "verify" && 
@@ -1183,61 +1373,103 @@ function Profile() {
         }
 
         {ShowUploadedImages && (
-          <div className="bg-gray-900 w-full h-[100vh] absolute left-0 top-0 z-40 flex items-center justify-center p-0 text-black">
-              
-            <div className="bg-[#adb6aa] dark:bg-[#7c807a] dark:text-[#CEC19F] fixed w-[92%] rounded-xl shadow
-            min-[620px]:w-[85%]
-            md:w-[80%]
-            lg:w-[70%]
-            xl:w-[65%]
-            ">
-              
-              <div 
-              className='p-2 text-[20px] flex items-center justify-between border-b-1 text-black font-semibold
-              min-[620px]:pl-3
-              md:grid-cols-4 md:pl-5
-              lg:pl-10
-              xl:pl-10
-              
-              '>
-                  <h1> Imagenes subidas </h1>
-                  <LucideXCircle className="hover:scale-120" onClick={() => setShowUploadedImages(false)}/>
-              </div>
+          <div className="fixed inset-0 z-[40] backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-gray-400/40 backdrop-blur-sm border border-white/20 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden">
 
-              <div className='scrollbar-custom overflow-y-auto grid grid-cols-3 max-h-[70vh] gap-1 px-2 py-5
-              min-[620px]:px-3
-              md:grid-cols-4 md:px-5
-              lg:px-10
-              xl:px-10
-              '>
-                  
-  
-              <div
-                onClick={handleClick}
-                className="flex flex-col items-center justify-center h-[120px] md:h-[150px] border border-white border-dashed rounded-lg cursor-pointer bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600"
-              >
-                {/* Ícono */}
-                <svg className="w-8 h-8 mb-1 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                  <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                </svg>
-
-                {/* Texto */}
-                <p className="text-center w-[95%] mx-auto font-semibold text-sm text-gray-500 dark:text-gray-400">Click para subir una imagen</p>
-
-                {/* Input oculto */}
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleImageChange} />
-              </div>
-
-
-                {UserImages.slice().reverse().map((IMGS, index) => (
-                
-                  <div className ="relative h-[120px] md:h-[150px]" key={index}>
-                    <img onClick={() => SelectImage(IMGS.imagen)} className="-z-10 opacity-80 hover:opacity-100 rounded-lg h-full w-full border-gray-700 border-[0.5px]" src={IMGS.imagen} alt="" />
-                  
-                    <LucideTrash className="w-6 absolute right-2 top-2 hover:scale-120" onClick={() => DeleteImage(IMGS.id)} />
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-emerald-500/20 rounded-2xl">
+                    <ImageIcon className="w-6 h-6 text-emerald-300" />
                   </div>
-                ))}  
+                  <div>
+                    <h3 className="text-xl font-semibold text-white">Gestionar Galería</h3>
+                    <p className="text-sm text-emerald-200">Máximo 5 imágenes</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowUploadedImages(false)}
+                  className="text-white/80 hover:text-white hover:bg-white/10 transition-all p-2 rounded-xl"
+                >
+                  <X size={24} />
+                </button>
+              </div>
 
+              {/* Contenido */}
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] scrollbar-custom">
+
+                {/* Subir imagen */}
+                <div className="mb-6">
+                  <div
+                    onClick={handleClick}
+                    className="bg-white/5 border-2 border-dashed border-white/30 rounded-2xl p-6 text-center hover:border-emerald-400/50 hover:bg-white/10 transition-all cursor-pointer"
+                  >
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/20 mb-3">
+                      <Upload className="h-8 w-8 text-emerald-300" />
+                    </div>
+
+                    <p className="text-white font-medium mb-1">
+                      {UserImages.length >= 10
+                        ? "Límite alcanzado (10/10)"
+                        : "Subir imagen"}
+                    </p>
+
+                    <p className="text-emerald-200 text-sm">
+                      {UserImages.length >= 10
+                        ? "Elimina alguna para agregar más"
+                        : `PNG, JPG, JPEG • ${UserImages.length}/10 subidas.`}
+                    </p>
+
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      disabled={UserImages.length >= 10}
+                    />
+                  </div>
+                </div>
+
+                {/* Grid de imágenes */}
+                {UserImages.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {UserImages.slice().reverse().map((IMGS, index) => (
+                      <div key={index} className="relative">
+                        <div className="relative overflow-hidden rounded-xl ring-2 ring-white/20 hover:ring-white/40 transition-all">
+                          
+                          <img
+                            src={IMGS.imagen}
+                            onClick={() => SelectImage(IMGS.imagen)}
+                            className="w-full h-40 object-cover cursor-pointer"
+                            alt=""
+                          />
+
+                          {/* Overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+
+                          {/* Eliminar */}
+                          <button
+                            type="button"
+                            onClick={() => DeleteImage(IMGS.id)}
+                            className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-2 shadow-lg"
+                          >
+                            <X size={16} />
+                          </button>
+
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white/5 mb-4">
+                      <ImageIcon className="w-10 h-10 text-white/30" />
+                    </div>
+                    <p className="text-white/60">No hay imágenes todavía</p>
+                    <p className="text-white/40 text-sm mt-1">Sube tu primera imagen arriba</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

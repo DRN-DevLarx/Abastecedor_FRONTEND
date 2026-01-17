@@ -22,6 +22,31 @@ async function GetData(endpoint) {
     }
 }
 
+// GET con access_token
+async function GetData2(endpoint, accessToken) {
+    try {
+        const response = await fetch(`${API_URL}${endpoint}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error fetching ${endpoint}: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error('Error al obtener:', endpoint, error);
+        throw error;
+    }
+}
+
+
 // POST
 async function PostData(endpoint, body) {
     
@@ -49,7 +74,6 @@ async function PostData(endpoint, body) {
 
 // PUT
 async function PutData(endpoint, id, body) {
-    console.log(endpoint, id, body);
       
     try {
         const response = await fetch(`${API_URL}${endpoint}${id}/`, {
@@ -61,20 +85,21 @@ async function PutData(endpoint, id, body) {
         });
 
         if (!response.ok) {
-            throw new Error('Error al actualizar (PUT) ' + endpoint);
+            throw new Error('Error al actualizar' + endpoint);
         }
 
         const data = await response.json();
         return data;
 
     } catch (error) {
-        console.error('Error al actualizar (PUT):', endpoint, error);
+        console.error('Error al actualizar:', endpoint, error);
         throw error;
     }
 }
 
 // PATCH
 async function PatchData(endpoint, id, body) {
+  
   try {
     const response = await fetch(`${API_URL}${endpoint}${id}/`, {
       method: "PATCH",
@@ -99,7 +124,6 @@ async function PatchData(endpoint, id, body) {
     throw error;
   }
 }
-
 
 // DELETE USER
 async function DeleteUserData(endpoint, id) {
@@ -153,4 +177,4 @@ async function DeleteData(endpoint, id) {
   }
 }
 
-export { GetData, PostData, PutData, PatchData, DeleteUserData, DeleteData };
+export { GetData, GetData2, PostData, PutData, PatchData, DeleteUserData, DeleteData };

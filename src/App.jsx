@@ -3,6 +3,7 @@ import { getCookie } from "./services/Token/sessionManager";
 import { GetData, PatchData } from "./services/ApiServices";
 import Routing from "./routes/Routing";
 import { AutenticatedUserData } from "./services/Token/AuthServices";
+import { ThemeProvider } from "../src/components/ThemeContext";
 
 function App() {
   const access_token = getCookie("access_token");
@@ -45,17 +46,19 @@ function App() {
 
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white">
-      {/* Botón de toggle */}
-      <button
-        onClick={toggleTheme}
-        className="z-100 fixed top-80 right-30 px-4 py-2 rounded dark:bg-red-600 bg-blue-500 text-white transition"
-      >
-        {darkMode ? "Modo Claro" : "Modo Oscuro"}
-      </button>
+    <ThemeProvider>
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white">
+        {/* Botón de toggle */}
+        <button
+          onClick={toggleTheme}
+          className="z-100 fixed top-80 right-30 px-4 py-2 rounded dark:bg-red-600 bg-blue-500 text-white transition"
+        >
+          {darkMode ? "Modo Claro" : "Modo Oscuro"}
+        </button>
 
-      <Routing />
-    </div>
+        <Routing />
+      </div>
+    </ThemeProvider>
   );
 }
 

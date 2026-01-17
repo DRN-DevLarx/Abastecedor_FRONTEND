@@ -27,7 +27,7 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
 
         switch (userData.error) {
           case "NO_SESSION":
-            message = "Debes iniciar sesión para acceder a esta sección.";
+            message = "Porfavor, Inicia sesión";
             break;
           case "INVALID_SESSION":
           case "NO_REFRESH_TOKEN":
@@ -47,8 +47,9 @@ const PrivateRoute = ({ element, allowedRoles = [] }) => {
           default:
             break;
         }
-
+                
         if (message) {
+          document.cookie.split(";").forEach(cookie => document.cookie = cookie.split("=")[0] + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;");
           localStorage.setItem("loginMessage", message);
           navigate("/IniciarSesion", { replace: true });
           return;

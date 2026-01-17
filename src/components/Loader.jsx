@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 const Loader = () => {
   return (
-    <div className='bg-gray-900 opacity-50 w-full h-[100vh] z-478438743 fixed top-0 flex justify-center items-center'>
+    <div className='bg-gray-900 opacity-50 w-full h-[100vh] z-478438743 fixed top-0 left-0 flex justify-center items-center'>
         <StyledWrapper>
         <div className="spinner">
             <div />   

@@ -41,6 +41,7 @@
   /* Estilos para la barra de scroll en su conjunto */
   .scrollbar-custom::-webkit-scrollbar {
       width: 10px; /* Ancho de la barra de scroll */
+      border: solid 0.5px #12a86ad5;
   }
 
   /* Estilos para la pista (track) de la barra de scroll */
@@ -51,12 +52,12 @@
 
   /* Estilos para el pulgar (thumb) de la barra de scroll */
   .scrollbar-custom::-webkit-scrollbar-thumb {
-      background-color: #a1a1aad5; /* Color del pulgar */
+      background-color: #12a86ad5; /* Color del pulgar */
   }
 
   /* Estilos al pasar el ratón sobre el pulgar */
   .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-      background-color: #171731;
+      background-color: #00ff95;
   }
 
 

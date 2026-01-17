@@ -3,10 +3,10 @@ import React from 'react'
 function About() {
     return (
         <section class="bg-[#adb6aaa8] dark:bg-[#171731]">
-            <div class="container px-6 py-10 mx-auto">
+            <div class="container px-6 py-5 mx-auto">
                 <h1 class="text-2xl font-semibold text-gray-800 capitalize lg:text-3xl dark:text-white"> Sobre Nosotros</h1>
 
-                <div class="mt-2">
+                <div>
                     <span class="inline-block w-40 h-1 bg-[#38664e] rounded-full"></span>
                     <span class="inline-block w-3 h-1 ml-1 bg-[#38664e] rounded-full"></span>
                     <span class="inline-block w-1 h-1 ml-1 bg-[#38664e] rounded-full"></span>

@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { X, ChartAreaIcon, MessageCircle, Settings, LogOut, ArrowLeft, Users2, ShoppingCartIcon, Truck, Layers } from "lucide-react";
+import { X, ChartAreaIcon, MessageCircle, Settings, LogOut, ArrowLeft, Users2, ShoppingCartIcon, Truck, Layers, ActivityIcon } from "lucide-react";
 import { Logout } from "../services/Token/sessionManager";
 import Statistics from "./Statistics";
 import UsersList from "./UsersList";
-import Messages from "./Messages";
 import ProductsList from "./ProductsList";
+import OrdersList from "./OrdersList"
+import SalesList from "./SalesList";
+import Messages from "./Messages";
+import SiteSettings from "./SiteSettings";
+import AuditsLog from "./AuditsLog";
 import { useNavigate } from "react-router-dom";
 import Loader from "./Loader";
 
@@ -20,10 +24,11 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
     { name: "Estadísticas", icon: <ChartAreaIcon size={18} />, component: <Statistics /> },
     { name: "Usuarios", icon: <Users2 size={18} />, component: <UsersList /> },
     { name: "Productos", icon: <Layers size={18} />, component: <ProductsList /> },
-    { name: "Pedidos", icon: <Truck size={18} />, component: <ProductsList /> },
-    { name: "Ventas", icon: <ShoppingCartIcon size={18} />, component: <ProductsList /> },
+    { name: "Pedidos", icon: <Truck size={18} />, component: <OrdersList /> },
+    { name: "Ventas", icon: <ShoppingCartIcon size={18} />, component: <SalesList /> },
     { name: "Mensajes", icon: <MessageCircle size={18} />, component: <Messages /> },
-    { name: "Ajustes", icon: <Settings size={18} />, component: <div>Ajustes</div> },
+    { name: "Eventos", icon: <ActivityIcon size={18} />, component: <AuditsLog /> },
+    { name: "Ajustes", icon: <Settings size={18} />, component: <SiteSettings /> },
   ];
   
   // Recuperar menú activo al montar
@@ -70,7 +75,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
       {/* Sidebar */}
       <aside
-        className={`bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] fixed inset-y-0 left-0 text-white w-64 p-4 transform lg:translate-x-0 transition-transform duration-300 z-30 ${
+        className={`bg-[#83917f7c] dark:bg-[#05052f8c] backdrop-blur-md dark:text-[#CEC19F] fixed inset-y-0 left-0 text-white w-64 p-4 transform lg:translate-x-0 transition-transform duration-300 z-40 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -91,7 +96,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
             <button
               key={item.name}
               onClick={() => handleClick(item)}
-              className={`flex items-center gap-3 p-2 w-full text-left rounded-lg hover:bg-[#62676dc9] ${
+              className={`flex items-center gap-3 px-2 py-1 w-full text-left rounded-lg hover:bg-[#62676dc9] ${
                 activeMenu === item.name ? "bg-[#62676dc9]" : ""
               }`}
             >
@@ -110,7 +115,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
       </aside>
 
       {/* Renderizado del componente activo */}
-      <main className="bg-[#adb6aaa8] dark:bg-[#171731] w-60% flex-1 mt-15 border-l-1 border-gray-300 overflow-y-auto lg:ml-64">
+      <main className="dark:bg-[#171731] w-60% flex-1 mt-14 lg:ml-64">
         {currentComponent}
       </main>
     </>

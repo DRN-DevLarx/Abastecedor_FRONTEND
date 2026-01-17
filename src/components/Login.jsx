@@ -36,61 +36,72 @@ function LoginForm () {
   }, []);
 
 
-  async function LogIn() {
+  async function LogIn(userName, password) {
+      if (!userName || !password) {
+          Swal.fire({
+              icon: 'info',
+              text: "Por favor, ingresa tu usuario y contraseña.",
+              showConfirmButton: false,
+              background: '#233876aa',
+              color: 'white',
+              timer: 3000
+          });
+          return;
+      }
 
-    if (!userName || !password) {
-      Swal.fire({
-          icon: 'info',
-          text: "Por favor, ingresa tu usuario y contraseña.",
-          showConfirmButton: false,
-          background: '#233876aa',
-          color: 'white',
-          timer: 3000
-      })
-
-    } else {
       setShowLoader(true);
-      
-      const endpoint = "token/";
-      const responseLogin = await Login(endpoint, {
-          username: userName,
-          password: password,
-      });
-      
 
-      setShowLoader(false);
+      try {
+          const responseLogin = await Login("token/", {
+              username: userName,
+              password: password,
+          });
 
-      if (responseLogin.status == 200) {
+          if (responseLogin.status === 200) {
+              document.cookie = `access_token=${responseLogin.data.access}; path=/; secure; SameSite=Strict`;
+              document.cookie = `refresh_token=${responseLogin.data.refresh}; path=/; secure; SameSite=Strict`;
 
-          document.cookie = `access_token=${responseLogin.data.access}; path=/; secure; SameSite=Strict`;
-          document.cookie = `refresh_token=${responseLogin.data.refresh}; path=/; secure; SameSite=Strict`;
-          
-          // document.cookie = `Session=${"true"}; path=/; secure; SameSite=Strict`;
-          const TOKEN = await GenerateToken({ ActiveSession: "true"}, "Session");
-    
-          if(TOKEN) {
-            navigate("/principal")
+              const TOKEN = await GenerateToken(
+                  { ActiveSession: "true" },
+                  "Session"
+              );
+
+              if (TOKEN) {
+                  navigate("/principal");
+              }
+          } else {
+            Swal.fire({
+                icon: 'error',
+                text: "El usuario o contraseña es incorrecto.",
+                showConfirmButton: false,
+                background: '#233876aa',
+                color: 'white',
+                timer: 3000
+            });
           }
 
-      } else {
+      } catch (error) {
+          console.error("Error en el login:", error);
+
           Swal.fire({
-            icon: 'error',
-            text: "El usuario o contraseña es incorrecto. Intentalo más tarde.",
-            showConfirmButton: false,
-            background: '#233876aa',
-            color: 'white',
-            timer: 3000
-          })
+              icon: 'error',
+              text: "Error del servidor. Si el problema persiste, por favor comuníquese con soporte.",
+              showConfirmButton: false,
+              background: '#233876aa',
+              color: 'white',
+              timer: 3500
+          });
+
+      } finally {
+          setShowLoader(false);
       }
-        
-    }
   }
 
   return (
     <div className="bg-[#adb6aaa8] dark:bg-[#171731] flex items-center justify-center min-h-[100vh]">
       {ShowLoader && <Loader />}
 
-      <form className="bg-[#adb6aa] dark:bg-gray-800 pt-3 pb-5 w-[90%] md:w-[55%] lg:w-[40%] flex flex-col gap-6 border border-gray-700 rounded-2xl">
+      <form className="-mt-5 md:mt-0 bg-[#adb6aa] dark:bg-gray-800 pt-3 pb-5 w-[90%] md:w-[55%] lg:w-[40%] flex flex-col gap-6 border border-gray-700 rounded-2xl">
         
         {/* Texto explicativo */}
         <div className="w-[90%] mx-auto mt-6 p-4 bg-[#38664e] rounded-lg">             
@@ -137,7 +148,7 @@ function LoginForm () {
           </Link>
 
           <button type="button" onClick={e => LogIn()} 
-          className="text-white flex items-center focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-[#38664e] hover:bg-[#24b469] hover:text-black focus:ring-[#38664e]">
+          className="text-white flex items-center focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-2 py-2.5 text-center bg-[#38664e] hover:bg-[#24b469] hover:text-black focus:ring-[#38664e]">
             Iniciar sesión
           </button>
         </div>

@@ -21,8 +21,6 @@ import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 import Loader from "./Loader";
 import { LogOutIcon, LucideLogIn, LucideShoppingCart, LucideUserRoundPen, Shield, User } from "lucide-react";
-import { Profiler } from "react";
-
 
 export default function NavbarComp() {
   
@@ -307,7 +305,11 @@ export default function NavbarComp() {
 
         {/* Logo CENTRADO en móvil / Izquierda en desktop */}
         <NavbarBrand className="flex justify-center flex-1 min-[640px]:flex-none">
-          <img src={Logo} className="h-16 w-auto" alt="Logo" />
+          <img
+            src={Logo}
+            className="h-16 w-auto dark:invert"
+            alt="Logo"
+          />
         </NavbarBrand>
 
         {/* Usuario + carrito */}

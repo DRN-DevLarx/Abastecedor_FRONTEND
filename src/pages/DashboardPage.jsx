@@ -14,7 +14,7 @@ function DashboardPage() {
   
   const DefaultImage = Default_Image;
   const [UserName, setUserName] = useState("");
-  const [UserImage, setUserImage] = useState("");
+  const [UserImage, setUserImage] = useState();
 
   const access_token = getCookie("access_token");
   const Role = jwtDecode(access_token).role;
@@ -32,14 +32,14 @@ function DashboardPage() {
         const AditionalInfo = await GetData("informacionUsuarios/");
         
         // filtrar usuario por id
-        const ID = userQuery.data.id;
+        const ID = userQuery.data?.id;
         const UserInfo = AditionalInfo.find(UInfo => UInfo.user === ID)        
         
         if (UserInfo) {
           
           if(!UserInfo.referenciaIMG) {
             setUserImage(DefaultImage);
-          } else {  
+          } else {
             setUserImage(UserInfo.referenciaIMG);
           }
         }
@@ -63,7 +63,7 @@ function DashboardPage() {
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
       {/* Header superior */}
-      <div className="fixed top-0 left-0 w-full bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F]  flex justify-between items-center px-5 py-3 z-20">
+      <div className="fixed top-0 left-0 w-full bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F]  flex justify-between items-center px-5 py-1">
         {/* Botón menú (solo en móvil) */}
         {!sidebarOpen && (
           <button
