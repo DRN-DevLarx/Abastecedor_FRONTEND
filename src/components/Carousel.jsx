@@ -2,16 +2,18 @@ import React, { useState, useEffect, useRef } from "react";
 import { GetData } from "../services/ApiServices";
 
 function Carousel3D() {
-  const [images, setImages] = useState();
+  const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
 
   // Autoplay
   useEffect(() => {
+    if (!images || images.length === 0) return;
     const interval = setInterval(() => handleNext(), 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [images]);
+
 
   // Fetch images from API and use local images as fallback
   useEffect(() => {
@@ -34,8 +36,15 @@ function Carousel3D() {
     return () => { mounted = false }
   }, [])
 
-  const handlePrev = () => { setCurrentIndex((prev) => (prev - 1 + images.length) % images.length); };
-  const handleNext = () => { setCurrentIndex((prev) => (prev + 1) % images.length); };
+  const handlePrev = () => {
+    if (!images || images.length === 0) return;
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const handleNext = () => {
+    if (!images || images.length === 0) return;
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
 
   const handleTouchStart = (e) => { touchStartX.current = e.changedTouches[0].screenX; };
   const handleTouchEnd = (e) => { touchEndX.current = e.changedTouches[0].screenX; if (touchStartX.current - touchEndX.current > 50) handleNext(); if (touchEndX.current - touchStartX.current > 50) handlePrev(); };
