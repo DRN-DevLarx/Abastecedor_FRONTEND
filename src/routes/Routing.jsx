@@ -12,7 +12,6 @@ import Confirm4 from "../components/Confirm4";
 import ResetPassword from "../components/ResetPassword";
 import Profile from "../components/Profile";
 import UsersList from "../components/UsersList";
-import UserCreate from "../components/UserCreate";
 import ProductsList from "../components/ProductsList";
 import ProductDetail from "../components/ProductDetail";
 import ShoppingCart from "../components/ShoppingCart";
@@ -83,15 +82,6 @@ function Routing() {
           element={
             <PrivateRoute
               element={<UsersList />}
-              allowedRoles={[1]}
-            />
-          }
-        />
-        <Route
-          path="/crearUsuario"
-          element={
-            <PrivateRoute
-              element={<UserCreate />}
               allowedRoles={[1]}
             />
           }
