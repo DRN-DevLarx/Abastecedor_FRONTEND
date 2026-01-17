@@ -118,116 +118,110 @@ function SalesList() {
     return (
         <div className="w-full pb-10 min-h-screen bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F]">
             <Alert />
-            <div className="relative w-[95%] md:w-[90%] mx-auto">
 
+            <div className="relative w-[95%] overflow-hidden md:w-[90%] mx-auto sm:rounded-l">
+            <div className="pb-4">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2 lg:gap-4">
 
-                {/* <div className="flex items-center justify-between py-3 gap-1">
-                    <h2 className="text-2xl font-bold">Ventas ({paidOrders.length})</h2>
-
-                    <div className="flex gap-3 w-[80%]">
-                        <div className="w-full relative">
-                            <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                <Search size={18} />
-                            </div>
-                            <input
-                                value={SearchValue}
-                                onChange={(e) => setSearchValue(e.target.value)}
-                                type="text"
-                                className="w-full ps-10 text-sm text-white rounded-lg bg-gray-400 px-3 py-2"
-                                placeholder="Buscar pedido por ID, cliente o estado"
-                            />
-                        </div>
-
-                        <button disabled className="hiddenpx-3 py-2 bg-gray-500/50 text-white rounded-lg">Agregar (solo lectura)</button>
-                    </div>
-                </div> */}
-
-
-                <div className="flex items-center justify-between lg:justify-around sm:flex-row flex-wrap space-y-4 sm:space-y-0 py-3 gap-1 bg-transparent">
-
-                    <h2 className="text-black dark:text-white text-2xl font-bold mt-2 mb-2 md:pl-2 text-center">Ventas ({paidOrders.length}) </h2>
-    
-                    <div className="flex gap-3 relative w-full lg:w-[80%] pr-0 md:pr-2">
-                        <div className="w-[100%] md:w-[90%] mx-auto">
-                            <div className="absolute inset-y-0 rtl:inset-r-0 start-[0%] flex items-center ps-3 pointer-events-none">
-                                <Search size={18}/>
-                            </div>
-                            <input 
-                                value={SearchValue} 
-                                onChange={(e) => setSearchValue(e.target.value)} 
-                                type="text" 
-                                id="table-search-users" 
-                                className="w-full block pt-2 ps-10 text-sm text-white placeholder-gray-100 border border-gray-300 rounded-lg bg-gray-400 focus:ring-[#38664e] focus:border-[#38664e] dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:ring-[#38664e] dark:focus:border-[#38664e]" 
-                                placeholder="Buscar pedido por ID, cliente"
-                            />
-                        </div>
-    
-                        {/* <button 
-                            onClick={() => setAddUserActive(true)} 
-                            className="md:w-[30%] lg:w-[50%] xl:w-[30%] inline-flex gap-1 items-center justify-center text-white bg-gray-400 hover:bg-[#38664e] hover:scale-105 border border-gray-300 focus:outline-none font-medium rounded-lg text-sm px-3 py-1.5 dark:bg-gray-800 dark:text-gray-400" 
-                            type="button"
-                        >
-                            <LucidePlusSquare/>
-                            <p className="hidden md:inline">Agregar usuario</p>
-                        </button> */}
-                    </div>
+                <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-bold text-black dark:text-white">Ventas</h2>
+                    <span className="flex justify-center items-center h-6 w-6 text-sm rounded-full bg-emerald-400 text-black">
+                    {paidOrders.length}
+                    </span>
                 </div>
 
-                <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                    <thead className="text-xs text-gray-100 uppercase bg-[#3f763081]">
-                        <tr>
-                            <th className="px-2 py-3">ID Pedido</th>
-                            <th className="px-2 py-3">Cliente</th>
-                            <th className="px-2 py-3">Fecha</th>
-                            <th className="px-2 py-3">Total</th>
-                            <th className="px-2 py-3">Estado</th>
-                            <th className="px-2 py-3 text-center">Acciones</th>
+                <div className="flex flex-col sm:flex-row gap-2 md:gap-3 w-full lg:w-[65%] p-1">
+                    <div className="relative flex-1">
+                    <Search size={18} className="absolute left-3 top-1/2 sm:top-[45%] -translate-y-1/2" />
+                    <input
+                        value={SearchValue}
+                        onChange={e => setSearchValue(e.target.value)}
+                        placeholder="Buscar pedido por ID, cliente"
+                        className="w-full ps-10 py-2 text-sm text-white placeholder-gray-100
+                                border border-gray-300 rounded-lg
+                                bg-emerald-400/20
+                                focus:outline focus:outline-emerald-500
+                                dark:border-gray-600 dark:placeholder-gray-400"
+                    />
+                    </div>
+                </div>
+                </div>
+
+                <div className="mt-1 h-px bg-gray-300 dark:bg-gray-700" />
+            </div>
+
+            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead className="text-xs text-gray-100 uppercase bg-emerald-600 backdrop-blur-md">
+                <tr>
+                    <th className="px-2 py-3">ID Pedido</th>
+                    <th className="px-2 py-3">Cliente</th>
+                    <th className="px-2 py-3">Fecha</th>
+                    <th className="px-2 py-3">Total</th>
+                    <th className="px-2 py-3">Estado</th>
+                    <th className="px-2 py-3 text-center">Acciones</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {filteredOrders.length === 0 ? (
+                    <tr>
+                    <td colSpan={6} className="px-6 py-8 text-center text-gray-500 dark:text-gray-400">
+                        {SearchValue ? "No se encontraron ventas" : "No hay ventas registradas"}
+                    </td>
+                    </tr>
+                ) : (
+                    filteredOrders.map(order => {
+                    const user = UsersData.find(u => u.id === order.cliente);
+                    const total = calculateTotal(order.id);
+
+                    return (
+                        <tr
+                        key={order.id}
+                        className="bg-transparent border-b border-gray-300 dark:border-gray-700
+                                    hover:bg-gray-400 dark:hover:bg-gray-600 hover:scale-101 cursor-pointer"
+                        >
+                        <td className="px-2 py-2 font-semibold">#{order.id}</td>
+
+                        <td className="px-2 py-2">
+                            {user ? `${user.first_name} ${user.last_name}` : "Usuario no encontrado"}
+                        </td>
+
+                        <td className="px-2 py-2">
+                            {new Date(order.fecha).toLocaleDateString("es-ES")}
+                        </td>
+
+                        <td className="px-2 py-2 font-semibold">₡{total.toFixed(2)}</td>
+
+                        <td className="px-2 py-2">
+                            <div className="flex items-center gap-2">
+                            <div className={`h-2.5 w-2.5 rounded-full ${getStatusColor(order.estado)}`} />
+                            <span className="text-xs">{getStatusLabel(order.estado)}</span>
+                            </div>
+                        </td>
+
+                        <td className="px-2 py-2">
+                            <div className="flex justify-center gap-2">
+                            <button
+                                onClick={e => {
+                                e.stopPropagation();
+                                handleViewOrderDetail(order);
+                                }}
+                                className="flex items-center gap-1 px-3 py-1
+                                        text-white bg-emerald-500 hover:bg-emerald-600
+                                        focus:ring-2 focus:ring-emerald-400
+                                        rounded-lg text-sm"
+                            >
+                                <Eye size={16} />
+                                <span className="hidden md:inline">Ver detalle</span>
+                            </button>
+                            </div>
+                        </td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {filteredOrders.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-8 text-center">
-                                    {SearchValue ? "No se encontraron ventas" : "No hay ventas registradas"}
-                                </td>
-                            </tr>
-                        ) : (
-                            filteredOrders.map((order) => {
-                                const user = UsersData.find((u) => u.id === order.cliente);
-                                const total = calculateTotal(order.id);
-                                return (
-                                    <tr key={order.id}
-                                        className="bg-transparent dark:border-gray-700 border-gray-300 border-b-1 hover:bg-gray-400 dark:hover:bg-gray-600 hover:scale-101 cursor-pointer">
-                                        <td className="px-2 py-2 font-semibold">#{order.id}</td>
-                                        <td className="px-2 py-2">{user ? `${user.first_name} ${user.last_name}` : "Usuario no encontrado"}</td>
-                                        <td className="px-2 py-2">{new Date(order.fecha).toLocaleDateString("es-ES")}</td>
-                                        <td className="px-2 py-2 font-semibold">₡{total.toFixed(2)}</td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`h-2.5 w-2.5 rounded-full ${getStatusColor(order.estado)}`}></div>
-                                                <span className="text-xs">{getStatusLabel(order.estado)}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-2 py-2">
-                                            <div className="flex justify-center gap-2">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleViewOrderDetail(order);
-                                                    }}
-                                                    className="flex items-center gap-2 px-3 py-2 bg-[#0191ff60] text-white rounded-lg"
-                                                >
-                                                    <Eye size={16} />
-                                                    <span className="hidden md:inline">Ver detalle</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })
-                            )}
-                        </tbody>
-                </table>
+                    );
+                    })
+                )}
+                </tbody>
+            </table>
             </div>
 
             {ViewOrderDetailModal && SelectedOrder && (
@@ -301,22 +295,29 @@ function SalesList() {
                                                             </a>
                                                         </p>
 
-                                                        <p>
+                                                        <div>
                                                             <span className="text-emerald-200">Teléfono:</span>{" "}
-                                                            <a
+                                                            {userInfo.telefono ? (
+                                                                <a
                                                                 href={`https://wa.me/${userInfo.telefono.replace(/\D/g, "")}`}
                                                                 target="_blank"
-                                                                rel="noreferrer"
+                                                                rel="noopener noreferrer"
                                                                 className="text-blue-600 dark:text-emerald-400 hover:text-emerald-300 underline underline-offset-2 transition"
-                                                            >
+                                                                >
                                                                 {userInfo.telefono}
-                                                            </a>
-                                                        </p>
-
+                                                                </a>
+                                                            ) : (
+                                                                <span className="text-white">No registrado</span>
+                                                            )}
+                                                        </div>
 
                                                         <div>
                                                             <span className="text-emerald-200">Dirección:</span>{" "}
-                                                            <p className="p-2 bg-white/10 max-h-20 break-words overflow-auto scrollbar-custom scrollbar-thin scrollbar-thumb-emerald-400 scrollbar-track-transparent">{userInfo.direccion}</p>
+                                                            {userInfo.direccion ? (
+                                                                <p className="max-h-15 text-white break-words overflow-y-auto"> {userInfo.direccion} </p>
+                                                            ) : (
+                                                                <span className="tex-white">No registrada</span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
