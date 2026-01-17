@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Search, X, Edit, ColumnsSettings } from 'lucide-react'
+import { Search, X, Edit, ColumnsSettings, Briefcase, BriefcaseBusiness, Eye, File, Mail, Phone, Tag } from 'lucide-react'
 import { GetData, PostData, PutData, PatchData, DeleteData } from '../services/ApiServices'
 import cloudDinaryServices from '../services/cloudDinaryServices'
 import Alert, { showAlert } from "./Alert"
@@ -13,11 +13,13 @@ function ModelsList() {
   
   const [token, setToken] = useState(() => getCookie("access_token"));
   const [CurrentUser, setCurrentUser] = useState([])
+  
   const [categorias, setCategorias] = useState([])
   const [proveedores, setProveedores] = useState([])
   const [imagenesCarrusel, setImagenesCarrusel] = useState([])
   const [contenidoEstatico, setContenidoEstatico] = useState([])
   const [comentarios, setComentarios] = useState([])
+  const [informacionUsuarios, setInformacionUsuarios] = useState([])
   const [Users, setUsers] = useState([])
 
   const [query, setQuery] = useState('')
@@ -31,6 +33,11 @@ function ModelsList() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploaderName, setuploaderName] = useState("")
   const [originalForm, setOriginalForm] = useState(null)
+  const [commentExpanded, setCommentExpanded] = useState(false)
+
+  const [editingId, setEditingId] = useState(null)
+  const [value, setValue] = useState('')
+  const [OriginalCategory, setOriginalCategory] = useState("")
 
   
   useEffect(() => {
@@ -45,13 +52,15 @@ function ModelsList() {
   const fetchAll = async () => {
     setIsUploading(true)
     try {
-      const [c, prov, img, cont, com, users] = await Promise.all([
+
+      const [c, prov, img, cont, com, users, infoUsers] = await Promise.all([
         GetData('categorias/'),
         GetData('proveedores/'),
         GetData('imagenesCarrusel/'),
         GetData('contenidoEstatico/'),
         GetData('comentarios/'),
-        GetData("users/")
+        GetData("users/"),
+        GetData('informacionUsuarios/')
       ])
 
       if (c) setCategorias(c)
@@ -74,6 +83,7 @@ function ModelsList() {
         }
 
       }
+      if (infoUsers) setInformacionUsuarios(infoUsers)
 
     } catch (err) {
       console.error('Error fetching models:', err)
@@ -90,6 +100,35 @@ function ModelsList() {
     const s = q.toLowerCase()
     return list.filter((item) => fields.some((f) => (((item[f] || '') + '').toLowerCase().includes(s))))
   }
+
+  const filterListWithUsers = (list, fields = [], userField) => {
+    const q = query?.trim().toLowerCase()
+    if (!q) return list
+
+    return list.filter(item => {
+      // 1️⃣ Buscar en campos normales
+      const fieldMatch = fields.some(f =>
+        String(item[f] || '').toLowerCase().includes(q)
+      )
+
+      // 2️⃣ Buscar en usuario relacionado
+      const userMatch = userField
+        ? resolveUserSearchText(item[userField]).includes(q)
+        : false
+
+      return fieldMatch || userMatch
+    })
+  }
+
+
+
+  const resolveUserSearchText = (userId) => {
+    const u = Users.find(u => String(u.id) === String(userId))
+    if (!u) return ''
+    return `${u.username || ''} ${u.first_name || ''} ${u.last_name || ''}`.toLowerCase()
+  }
+
+
 
   const openCreate = (model) => {
     setModalMode('create')
@@ -113,6 +152,14 @@ function ModelsList() {
 
     const UserName = getUploaderName(Users, item.subida_por)    
     setuploaderName(UserName)
+  }
+
+  const openView = (model, item) => {
+    setModalMode('view')
+    setModalModel(model)
+    setForm(item)
+    setOriginalForm(null)
+    setModalOpen(true)
   }
 
   const normalizeForm = (obj) => {
@@ -139,7 +186,6 @@ function ModelsList() {
   }
 
   const validateBeforeSave = (mode) => {
-    console.log("111");
 
     // mode: 'create' | 'edit'
     const m = modalModel
@@ -195,15 +241,7 @@ function ModelsList() {
         showAlert('error', 'Error', 'El nombre del proveedor no puede estar vacío.')
         return false
       }
-      if (!form.telefono || !form.telefono.toString().trim()) {
-        showAlert('error', 'Error', 'El teléfono del proveedor no puede estar vacío.')
-        return false
-      }
-      // correo opcional pero si está, validar formato simple
-      if (form.correo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.correo)) {
-        showAlert('error', 'Error', 'El correo no tiene un formato válido.')
-        return false
-      }
+
       return true
     }
 
@@ -215,6 +253,10 @@ function ModelsList() {
       }
       if (!form.contenido || !form.contenido.toString().trim()) {
         showAlert('error', 'Error', 'El contenido no puede estar vacío.')
+        return false
+      }
+      if (mode === 'edit' && !hasFormChanged()) {
+        showAlert('info', 'Info', 'No hay cambios para guardar.')
         return false
       }
       return true
@@ -243,8 +285,8 @@ function ModelsList() {
     setForm({})
     setImageVia("")
     setImageStatus("activa")
+    setCommentExpanded(false)
   }
-
 
   const handleFormChange = (k, v) => setForm(prev => ({ ...prev, [k]: v }))
 
@@ -316,23 +358,30 @@ function ModelsList() {
       }
 
       // OTROS MODELOS: crear y actualizar estado local para visualización instantánea
-      const payload = { ...form }
+      const payload2 = { ...form }
 
       // Para comentarios, enviar username en vez de id
       if (modalModel === 'comentarios') {
         const userInput = form.user || form.user_id || ''
         const userObj = Users.find(u => String(u.id) === String(userInput) || u.username === userInput)
-        payload.user = userObj ? userObj.username : String(userInput)
+        payload2.user = userObj ? userObj.username : String(userInput)
+      }
+
+      // Para contenidoEstatico, enviar el ID del usuario actual
+      if (modalModel === 'contenidoEstatico') {
+        payload2.modificado_por = CurrentUser?.id
+        payload2.actualizado_el = new Date().toISOString()
       }
 
       setIsUploading(true)
+      
       try {
-        const res = await PostData(`${modalModel}/`, payload)
+        const res = await PostData(`${modalModel}/`, payload2)
         const created = res && (res.id ? res : (res.data ? res.data : null))
         const createdOk = created || (res && res.status >= 200 && res.status < 300)
 
         if (createdOk) {
-          const newItem = created || { id: Date.now(), ...payload }
+          const newItem = created || { id: Date.now(), ...payload2 }
           switch (modalModel) {
             case 'categorias':
               setCategorias(prev => [newItem, ...prev])
@@ -368,9 +417,39 @@ function ModelsList() {
       showAlert('error', 'Error', 'Ocurrió un error al crear.')
     }
   }
-
-
+  
   const handleUpdate = async () => {
+    
+    if (modalModel === "categorias") {
+      
+      if (value.trim() === "") {
+        showAlert('info', 'Nombre vacío', 'Ingresa el nombre de la categoría.')
+        return
+      }
+
+      if (value === OriginalCategory) {
+        setEditingId(null)
+        return
+      }
+
+      const CategoryUpdate = await PutData("categorias/", editingId, { nombre: value })
+
+      if (!CategoryUpdate) {
+        showAlert("error", "Error", "No se pudo actualizar la categoría.")
+        return
+      }
+
+      setCategorias(prev =>
+        prev.map(cat =>
+          cat.id === editingId ? CategoryUpdate : cat
+        )
+      )
+
+      setEditingId(null)
+      showAlert("success", "Éxito", "Categoría actualizada correctamente.")
+      return
+    }
+
     if (!modalModel || !form.id) return
 
     // validaciones antes de actualizar
@@ -393,7 +472,7 @@ function ModelsList() {
         return
       }
 
-      const payload = { estado: ImageStatus, subida_por: CurrentUser?.id }
+      const payload = { estado: ImageStatus, subida_por: CurrentUsers?.id }
 
       try {
         // Solo mostrar Swal de subida si vamos a subir un archivo local
@@ -446,8 +525,9 @@ function ModelsList() {
 
     // Resto de modelos: usar isUploading + put genérico
     setIsUploading(true)
+    
     try {
-      await PutData(`${modalModel}/`, form.id, form)
+      await PatchData(`${modalModel}/`, form.id, form)
       await fetchAll()
       closeModal()
     } catch (err) {
@@ -498,8 +578,23 @@ function ModelsList() {
   }
 
   const getUploaderName = (users, userId) => {
-    const user = users.find(u => u.id === userId)
-    return user?.username ?? 'Desconocido'
+    const u = users.find(u => String(u.id) === String(userId) || u.username === String(userId))
+    return u ? (u.first_name || u.username) : (String(userId) || 'Desconocido')
+  }
+
+  const getUserByIdentifier = (users, idOrUsername) => {
+    if (!users || !users.length) return null
+    const u = users.find(u => String(u.id) === String(idOrUsername) || u.username === String(idOrUsername)) || null
+    if (!u) return null
+    const info = informacionUsuarios && informacionUsuarios.find(i => String(i.user) === String(u.id))
+    return info ? ({ ...u, referenciaIMG: info.referenciaIMG || info.referenciaImg || null }) : u
+  }
+
+  const ValueSet = (id, nombre) => {
+    setEditingId(id)
+    setValue(nombre)
+    setOriginalCategory(nombre)
+    
   }
 
   // const formatDate = (dateString) => {
@@ -515,7 +610,8 @@ function ModelsList() {
     switch (activeTab) {
       case 'imagenesCarrusel': {
         // Mostrar más recientes primero
-        const list = filterList(imagenesCarrusel, ['url']).slice().sort((a, b) => (b.id || 0) - (a.id || 0))
+        // const list = filterList(imagenesCarrusel, ['url']).slice().sort((a, b) => (b.id || 0) - (a.id || 0))
+        const list = imagenesCarrusel.slice().sort((a, b) => (b.id || 0) - (a.id || 0))
 
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-105 overflow-y-auto">
@@ -571,137 +667,275 @@ function ModelsList() {
           </div>
         )
       }
-
-      case 'categorias': {
-        const list = filterList(categorias, ['nombre'])
-        return (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-100 uppercase bg-[#3f763081] backdrop-blur-md">
-                <tr>
-                  <th className="px-2 py-3">ID</th>
-                  <th className="px-2 py-3">Nombre</th>
-                  <th className="text-center px-2 py-3">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((c) => (
-                  <tr key={c.id} className="bg-transparent border-b border-gray-300 dark:border-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600">
-                    <td className="px-2 py-2 font-semibold whitespace-nowrap">#{c.id}</td>
-                    <td className="px-2 py-2">{c.nombre}</td>
-                    <td className="px-2 py-2">
-                      <div className="flex justify-center gap-2 flex-wrap">
-                        <button onClick={() => openEdit('categorias', c)} className="text-white bg-[#0191ff60] hover:bg-[#0191ff] font-medium rounded-lg text-sm px-3 py-2">Editar</button>
-                        <button onClick={() => handleDelete('categorias', c.id)} className="text-white bg-[#ff011f89] hover:bg-[#ff011f] font-medium rounded-lg text-sm px-3 py-2">Borrar</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      
+      case 'comentarios': {
+        const list = filterListWithUsers(comentarios,
+          ['comentario'], // solo campos de texto reales
+          'user',         // FK al usuario
+          Users,          // lista de usuarios
+          query
         )
-      }
-
-      case 'proveedores': {
-        const list = filterList(proveedores, ['nombre', 'telefono', 'correo'])
+          .slice()
+          .sort((a, b) => (b.id || 0) - (a.id || 0))
+          
         return (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-100 uppercase bg-[#3f763081] backdrop-blur-md">
-                <tr>
-                  <th className="px-2 py-3">ID</th>
-                  <th className="px-2 py-3">Nombre</th>
-                  <th className="px-2 py-3">Teléfono</th>
-                  <th className="text-center px-2 py-3">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((p) => (
-                  <tr key={p.id} className="bg-transparent border-b border-gray-300 dark:border-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600">
-                    <td className="px-2 py-2 font-semibold whitespace-nowrap">#{p.id}</td>
-                    <td className="px-2 py-2">{p.nombre}</td>
-                    <td className="px-2 py-2 whitespace-nowrap">{p.telefono}</td>
-                    <td className="px-2 py-2">
-                      <div className="flex justify-center gap-2 flex-wrap">
-                        <button onClick={() => openEdit('proveedores', p)} className="text-white bg-[#0191ff60] hover:bg-[#0191ff] font-medium rounded-lg text-sm px-3 py-2">Editar</button>
-                        <button onClick={() => handleDelete('proveedores', p.id)} className="text-white bg-[#ff011f89] hover:bg-[#ff011f] font-medium rounded-lg text-sm px-3 py-2">Borrar</button>
+          <div className="max-h-[60vh] overflow-auto scrollbar-thin scrollbar-thumb-emerald-400">
+            {list.length === 0 ? (
+              <div className="text-center text-sm text-gray-400 py-6">No hay comentarios</div>
+            ) : (
+              <ul className="space-y-2">
+                {list.map(({ id, user, comentario, publicado_el }) => {
+                  const userObj = getUserByIdentifier(Users, user)
+                  const displayName = userObj?.first_name || userObj?.username || String(user) || 'Desconocido'
+                  const displayLastName = userObj?.last_name || userObj?.username || String(user) || 'Desconocido'
+                  const avatarSrc = userObj?.referenciaIMG || userObj?.avatar || userObj?.profile_image || null
+                  const avatarLetter = (userObj?.username || userObj?.first_name || String(user) || 'U')[0]?.toUpperCase()
+
+                  return (
+                    <li key={id} className="p-3 rounded-lg bg-gray-500/20 hover:bg-white/10 flex gap-3">
+
+                      {/* Avatar */}
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-white font-semibold overflow-hidden">
+                        {avatarSrc ? (
+                          <img src={userObj?.referenciaIMG} alt={displayName} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-lg">{avatarLetter}</span>
+                        )}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+                      {/* Texto */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-black dark:text-white font-medium">{displayName} {displayLastName}</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(publicado_el).toLocaleDateString()}</span>
+                        </div>
+
+                        <p className="text-gray-500 dark:text-gray-400 truncate">{comentario}</p>
+
+                        {/* Acciones */}
+                        <div className="flex gap-2 mt-1">
+                          <button
+                            onClick={() => openView('comentarios', { id, user, comentario, publicado_el })}
+                            className="text-xs px-2 py-1 rounded bg-emerald-400/50 hover:bg-emerald-500 text-black"
+                          >
+                            Ver comentario
+                          </button>
+                          <button
+                            onClick={() => handleDelete('comentarios', id)}
+                            className="text-xs px-2 py-1 rounded bg-red-500/60 hover:bg-red-500 text-black"
+                          >
+                            Borrar
+                          </button>
+                        </div>
+                      </div>
+
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </div>
         )
       }
 
       case 'contenidoEstatico': {
-        const list = filterList(contenidoEstatico, ['titulo', 'contenido'])
+        const list = filterList(contenidoEstatico, ['titulo', 'contenido']).slice().sort((a, b) => (b.id || 0) - (a.id || 0))
+
         return (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-100 uppercase bg-[#3f763081] backdrop-blur-md">
-                <tr>
-                  <th className="px-2 py-3">ID</th>
-                  <th className="px-2 py-3">Título</th>
-                  <th className="px-2 py-3 hidden md:table-cell">Modificado por</th>
-                  <th className="px-2 py-3 hidden lg:table-cell">Fecha</th>
-                  <th className="px-2 py-3">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((c) => (
-                  <tr key={c.id} className="bg-transparent border-b border-gray-300 dark:border-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600">
-                    <td className="px-2 py-2 font-semibold whitespace-nowrap">#{c.id}</td>
-                    <td className="px-2 py-2">{c.titulo}</td>
-                    <td className="px-2 py-2 hidden md:table-cell">{c.modificado_Por || c.modificado_por || '-'}</td>
-                    <td className="px-2 py-2 hidden lg:table-cell whitespace-nowrap">{new Date(c.actualizado_el || c.updated_at || Date.now()).toLocaleDateString('es-ES')}</td>
-                    <td className="px-2 py-2">
-                      <div className="flex gap-2 justify-center flex-wrap">
-                        <button onClick={() => openEdit('contenidoEstatico', c)} className="text-white bg-[#0191ff60] hover:bg-[#0191ff] font-medium rounded-lg text-sm px-3 py-2">Editar</button>
-                        <button onClick={() => handleDelete('contenidoEstatico', c.id)} className="text-white bg-[#ff011f89] hover:bg-[#ff011f] font-medium rounded-lg text-sm px-3 py-2">Borrar</button>
+          <div className="max-h-[60vh]  scrollbar-thin scrollbar-thumb-emerald-400">
+            {list.length === 0 ? (
+              <div className="text-center text-sm text-gray-400 py-6">No hay contenido estático</div>
+            ) : (
+              <ul className="space-y-2">
+                {list.map(({ id, titulo, contenido, modificado_por, actualizado_el }) => {
+                  const userObj = getUserByIdentifier(Users, modificado_por)
+                  const displayName = userObj?.first_name || userObj?.username || String(modificado_por) || 'Desconocido'
+                  const avatarSrc = userObj?.referenciaIMG || userObj?.avatar || userObj?.profile_image || null
+                  const avatarLetter = (userObj?.username || userObj?.first_name || String(modificado_por) || 'U')[0]?.toUpperCase()
+
+                  return (
+                    <li key={id} className="p-3 rounded-lg bg-gray-500/20 hover:bg-white/10 flex gap-3">
+
+                      {/* Icono para contenido estático */}
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-white font-semibold">
+                        {/* <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg> */}
+                        <File/>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+                      {/* Texto */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-black dark:text-white font-medium">{titulo}</span>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(actualizado_el || Date.now()).toLocaleDateString()}</span>
+                        </div>
+
+                        <p className="text-gray-500 dark:text-gray-400 truncate">{contenido}</p>
+
+                        {/* Acciones */}
+                        <div className="flex gap-2 mt-1">
+                          <button
+                            onClick={() => openEdit('contenidoEstatico', { id, titulo, contenido, modificado_por, actualizado_el })}
+                            className="text-xs px-2 py-1 rounded bg-emerald-400/50 hover:bg-emerald-500 text-black"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => handleDelete('contenidoEstatico', id)}
+                            className="text-xs px-2 py-1 rounded bg-red-500/60 hover:bg-red-500 text-black"
+                          >
+                            Borrar
+                          </button>
+                        </div>
+                      </div>
+
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </div>
         )
       }
 
-      case 'comentarios': {
-        const list = filterList(comentarios, ['comentario'])
+      case 'proveedores': {
+        const list = filterList(proveedores, ['nombre', 'telefono', 'correo']).slice().sort((a, b) => (b.id || 0) - (a.id || 0))
+
         return (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <thead className="text-xs text-gray-100 uppercase bg-[#3f763081] backdrop-blur-md">
-                <tr>
-                  <th className="px-2 py-3">ID</th>
-                  <th className="px-2 py-3 hidden sm:table-cell">Usuario</th>
-                  <th className="px-2 py-3">Comentario</th>
-                  <th className="px-2 py-3 hidden md:table-cell">Fecha</th>
-                  <th className="px-2 py-3">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((cm) => (
-                  <tr key={cm.id} className="bg-transparent border-b border-gray-300 dark:border-gray-700 hover:bg-gray-400 dark:hover:bg-gray-600">
-                    <td className="px-2 py-2 font-semibold whitespace-nowrap">#{cm.id}</td>
-                    <td className="px-2 py-2 hidden sm:table-cell">{cm.user || cm.user_id || '-'}</td>
-                    <td className="px-2 py-2 max-w-xs truncate">{cm.comentario}</td>
-                    <td className="px-2 py-2 hidden md:table-cell whitespace-nowrap text-xs">{new Date(cm.publicado_el || cm.created_at || Date.now()).toLocaleDateString('es-ES')}</td>
-                    <td className="px-2 py-2">
-                      <div className="flex gap-2 justify-center flex-wrap">
-                        <button onClick={() => openEdit('comentarios', cm)} className="text-white bg-[#0191ff60] hover:bg-[#0191ff] font-medium rounded-lg text-sm px-3 py-2">Editar</button>
-                        <button onClick={() => handleDelete('comentarios', cm.id)} className="text-white bg-[#ff011f89] hover:bg-[#ff011f] font-medium rounded-lg text-sm px-3 py-2">Borrar</button>
+          <div className="max-h-[60vh]  scrollbar-thin scrollbar-thumb-emerald-400">
+            {list.length === 0 ? (
+              <div className="text-center text-sm text-gray-400 py-6">No hay proveedores</div>
+            ) : (
+              <ul className="space-y-2">
+                {list.map(({ id, nombre, telefono, telefono2, correo, direccion }) => {
+                  return (
+                    <li key={id} className="p-3 rounded-lg bg-gray-500/20 hover:bg-white/10 flex gap-3">
+
+                      {/* Icono para proveedores */}
+                      <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-white font-semibold">
+                        <BriefcaseBusiness/>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+                      {/* Texto */}
+                      <div className="flex-1 min-w-0">
+
+                        <div className="flex justify-between text-sm">
+                          <span className="text-black dark:text-white font-medium">{nombre}</span>
+                            {telefono || telefono2 ? (
+                              
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
+                                Tel: {telefono || telefono2}
+                              </span>
+                              
+                            ) : (
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
+                                Tel: No registrado
+                              </span>
+
+                            )}
+                        </div>
+
+
+                        <p className="text-gray-500 dark:text-gray-400 truncate"> {direccion || "Dirección no registrada"} </p>
+
+                        {/* Acciones */}
+                        <div className="flex gap-2 mt-1">
+                          {(telefono || telefono2) && nombre && correo && direccion && (
+                            <button
+                              onClick={() => openView('proveedores', { id, nombre, telefono, telefono2, correo, direccion })}
+                              className="text-xs px-2 py-1 rounded bg-emerald-400/50 hover:bg-emerald-500 text-black"
+                            >
+                              Ver proveedor
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleDelete('proveedores', id)}
+                            className="text-xs px-2 py-1 rounded bg-red-500/60 hover:bg-red-500 text-black"
+                          >
+                            Borrar
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+        )
+      }
+
+      case 'categorias': {
+        const list = filterList(categorias, ['nombre']).slice().sort((a, b) => (b.id || 0) - (a.id || 0))
+
+        return (
+          <div className="max-h-[60vh] scrollbar-thin scrollbar-thumb-emerald-400">
+            {list.length === 0 ? (
+              <div className="text-center text-sm text-gray-400 py-6">No hay categorías</div>
+            ) : (
+              <ul className="space-y-2">
+                {list.map(({ id, nombre }) => {
+                  const isEditing = editingId === id
+
+                  return (
+                    <li
+                      key={id}
+                      className="p-3 rounded-lg bg-gray-500/20 hover:bg-white/10 flex items-center gap-3"
+                    >
+                      {/* Icono */}
+                      <div className="w-7 h-7 rounded-full bg-purple-500/20 flex items-center justify-center text-white">
+                        <Tag  size={18}/>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        {/* Nombre / Input */}
+                        {isEditing ? (
+                          <input
+                            value={value}
+                            onChange={(e) => setValue(e.target.value)}
+                            className="w-full px-2 py-1 rounded bg-white/10 text-black dark:text-white focus:outline-none"
+                            autoFocus
+                          />
+                        ) : (
+                          <span className=" text-black dark:text-white font-medium px-2 py-1">
+                            {nombre}
+                          </span>
+                        )}
+
+                        {/* Acciones */}
+                        <div className="flex gap-2">
+                          {isEditing ? (
+                            <button
+                              onClick={() => (setModalModel("categorias"), handleUpdate())}
+                              className="text-xs px-2 py-1 rounded bg-blue-400 hover:bg-blue-500 text-black"
+                            >
+                              Guardar
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => ValueSet(id, nombre)}
+                              className="text-xs px-2 py-1 rounded bg-emerald-400 hover:bg-emerald-500 text-black"
+                            >
+                              Editar
+                            </button>
+                          )}
+
+                          <button
+                            onClick={() => handleDelete('categorias', id)}
+                            className="text-xs px-2 py-1 rounded bg-red-500/60 hover:bg-red-500 text-black"
+                          >
+                            Borrar
+                          </button>
+                        </div>
+
+                      </div>
+
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
           </div>
         )
       }
@@ -712,76 +946,68 @@ function ModelsList() {
   }
 
   return (
-    <div className="w-full px-2 sm:px-4 lg:w-[95%] mx-auto py-4 sm:py-6">
+    <div className="w-full px-2 sm:px-4 lg:w-[95%] mx-auto bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F]">
       <Alert/>
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 py-3">
-        <h2 className="text-black dark:text-white text-xl sm:text-2xl font-bold text-center sm:text-left w-full sm:w-auto">
+
+      <div className="flex flex-col sm:flex-row items-center sm:items-center justify-between gap-3 pb-3 px-4">
+        
+        {/* TÍTULO — siempre arriba en móvil */}
+        <h2 className="order-1 sm:order-none w-full sm:w-auto  text-xl sm:text-2xl font-bold  text-black dark:text-white  sm:text-left">
           Ajustes generales
         </h2>
 
-        <div className="relative w-full sm:w-auto sm:flex-1 lg:max-w-md">
-          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-            <Search size={18}/>
-          </div>
-          <input 
-            value={query} 
-            onChange={(e) => setQuery(e.target.value)} 
-            type="text" 
-            className="w-full pl-10 pr-3 py-2 text-sm text-white placeholder-gray-100 border border-gray-300 rounded-lg bg-gray-400 focus:ring-[#38664e] focus:border-[#38664e] dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" 
-            placeholder="Buscar..."
+        {/* INPUT — full width en móvil */}
+        <div className="order-2 sm:order-none relative w-full md:max-w-md sm:flex-1">
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-200"
+          />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} type="text" placeholder="Busqueda general"
+            className="w-full pl-10 pr-3 py-2 text-sm text-white placeholder-gray-100 bg-emerald-400/20 border border-emerald-500/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:placeholder-gray-400"
           />
         </div>
+
       </div>
 
       <div className="p-2 sm:p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 sm:gap-6">
 
-          {/* Imagenes Carrusel Card */}
-          <div className="lg:col-span-5 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-3">
-              <h3 className="text-black dark:text-white text-base sm:text-lg font-bold">
-                Imágenes del Carrusel ({imagenesCarrusel.length})
-              </h3>
-              
-              <button 
-                onClick={() => openCreate('imagenesCarrusel')} 
-                className="w-[88%] mx-auto sm:mx-0 sm:w-auto inline-flex gap-1 items-center justify-center text-white bg-gray-400 hover:bg-[#38664e] border border-gray-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-gray-800"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Agregar</span>
-              </button>
-            </div>
-            <div className="overflow-auto px-8">{renderTableCard('imagenesCarrusel')}</div>
-          </div>
+          {!query?.trim() && (
+            <>
+              {/* Imagenes Carrusel Card */}
+              <div className="md:col-span-6 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-3">
+                  <h3 className="text-black dark:text-white text-base sm:text-lg font-bold">
+                    Imágenes del Carrusel ({imagenesCarrusel.length})
+                  </h3>
+                  
+                  <button 
+                    onClick={() => openCreate('imagenesCarrusel')} 
+                    className="w-[94%] mx-auto sm:mx-0 sm:w-auto inline-flex gap-1 items-center justify-center text-white bg-gray-400 hover:bg-[#38664e] border border-gray-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-gray-800"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Agregar</span>
+                  </button>
+                </div>
+                <div className="overflow-auto px-4 sm:px-1">{renderTableCard('imagenesCarrusel')}</div>
+              </div>
+            </>
+          )}
 
           {/* Comentarios Card */}
-          <div className="lg:col-span-2 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
+          <div className="md:col-span-3 rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-3">
               <h3 className="text-black dark:text-white text-base sm:text-lg font-bold">
                 Comentarios ({comentarios.length})
               </h3>
-              <button 
-                onClick={() => openCreate('comentarios')} 
-                className="w-full sm:w-auto inline-flex gap-1 items-center justify-center text-white bg-gray-400 hover:bg-[#38664e] border border-gray-300 font-medium rounded-lg text-sm px-3 py-2 dark:bg-gray-800"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span>Agregar</span>
-              </button>
             </div>
             <div className="max-h-80 overflow-auto">{renderTableCard('comentarios')}</div>
           </div>
 
-          {/* Ilustrativo - oculto en móvil */}
-          <div className="hidden lg:flex justify-center items-center px-4 pb-2">
-            <ColumnsSettings className='max-h-80' size={200}/>
-          </div>
-
           {/* Contenido Estatico Card */}
-          <div className="lg:col-span-2 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
+          <div className="md:col-span-3 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-3">
               <h3 className="text-black dark:text-white text-base sm:text-lg font-bold">
                 Contenido Estático ({contenidoEstatico.length})
@@ -800,7 +1026,7 @@ function ModelsList() {
           </div>
 
           {/* Proveedores Card */}
-          <div className="lg:col-span-3 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
+          <div className="md:col-span-4 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-3">
               <h3 className="text-black dark:text-white text-base sm:text-lg font-bold">
                 Proveedores ({proveedores.length})
@@ -819,7 +1045,7 @@ function ModelsList() {
           </div>
 
           {/* Categorias Card */}
-          <div className="lg:col-span-2 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
+          <div className="md:col-span-2 backdrop-blur-xl rounded-lg px-3 sm:px-4 pb-3 shadow-sm">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-3">
               <h3 className="text-black dark:text-white text-base sm:text-lg font-bold">
                 Categorías ({categorias.length})
@@ -844,43 +1070,66 @@ function ModelsList() {
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[900] flex items-center justify-center p-4">
             <div className="w-full max-w-lg bg-gray-500/40 backdrop-blur-md rounded-lg shadow-2xl max-h-[90vh] overflow-y-auto">
               {isUploading && (
-                <div className="absolute inset-0 z-[950] flex items-center justify-center bg-black/40">
+                <div className="absolute top-0 z-[950] flex items-center justify-center bg-black/40">
                   <Loader />
                 </div>
               )}
-              {/* HEADER */}
-              <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-gray-500/60 backdrop-blur-md">
-                <div>
-                  <h1 className="text-base sm:text-lg font-bold text-white">
+              {/* HEADER (oculto para modal de comentario en vista) */}
+              {!(modalModel === 'comentarios' && modalMode === 'view') && (
+                <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-gray-500/60 backdrop-blur-md">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-base sm:text-lg font-bold text-white">
+                        {modalModel === "imagenesCarrusel" ? (
+                          <> {modalMode === "create" ? "Subir" : "Editar"} Imagenes de Carrusel </>
+                        ) : modalModel === "proveedores" && modalMode === "view" ? (
+                          <>Ver proveedor</>
+                        ) : (
+                          <>
+                          {modalMode === "create" ? "Crear" : "Editar"} {modalModel}
+                          </>
+                        )}
+                      </h1>
+                    </div>
+                    <p className="text-xs sm:text-sm text-emerald-200">
+                      {modalMode === 'view' ? 'Visualiza la información del proveedor' : 'Rellena los campos y guarda'}
+                    </p>
+                  </div>
 
-                    {modalModel === "imagenesCarrusel" ? (
-                      <> {modalMode === "create" ? "Subir" : "Editar"} Imagenes de Carrusel </>
-                    ) : (
-                      <>
-                      {modalMode === "create" ? "Crear" : "Editar"} {modalModel}
-                      </>
-                    )}
+                  {modalModel === 'proveedores' && modalMode !== 'create' && (
+                    <button
+                      onClick={() => {
+                        if (modalMode === 'view') {
+                          setModalMode('edit')
+                          setOriginalForm(JSON.parse(JSON.stringify(form)))
+                        } else {
+                          setModalMode('view')
+                          setOriginalForm(null)
+                        }
+                      }}
+                      className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition"
+                      title={modalMode === 'view' ? 'Editar' : 'Ver'}
+                    >
+                      {modalMode === 'view' ? <Edit size={20} /> : <Eye size={20} />}
+                    </button>
+                  )}
 
-                    
-                  </h1>
-                  <p className="text-xs sm:text-sm text-emerald-200">
-                    Rellena los campos y guarda
-                  </p>
+                  <button
+                    onClick={closeModal}
+                    className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition"
+                  >
+                    <X />
+                  </button>
+
                 </div>
-                <button
-                  onClick={closeModal}
-                  className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/10 transition"
-                >
-                  <X />
-                </button>
-              </div>
+              )}
 
               {/* BODY */}
               <div className="p-4 space-y-4">
 
                 {/* IMÁGENES CARRUSEL */}
                 {modalModel === "imagenesCarrusel" && (
-                  <div className="rounded-lg px-4 py-2  space-y-3">
+                  <div className="rounded-lg px-4 py-2 space-y-3">
                     <div className="grid grid-cols-1 gap-3">
                       <div>
                         <label className="block text-sm text-emerald-200 mb-1">Estado</label>
@@ -962,113 +1211,178 @@ function ModelsList() {
                   </div>
                 )}
 
+                {/* COMENTARIOS */}
+                {modalModel === "comentarios" && modalMode === 'view' && (
+                  <>
+                  <div className="relative max-w-2xl px-8 py-4 bg-gray-400 rounded-lg shadow-md dark:bg-gray-800">
+                      <button
+                        onClick={closeModal}
+                        className="absolute top-4 right-4 p-1 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-400/50 transition"
+                      >
+                        <X size={20} />
+                      </button>
+                      <div className="flex items-center justify-between">
+                          <span className="text-sm font-light text-gray-600 dark:text-gray-400">{new Date(form.publicado_el).toLocaleDateString('es-ES')}</span>
+                      </div>
+
+                      <div className="mt-2">
+                         
+                          <p className={`mt-2 text-gray-600 dark:text-gray-300 ${!commentExpanded ? 'line-clamp-3' : ''}`}>
+                            {form.comentario}
+                          </p>
+                          {form.comentario && form.comentario.length > 100 && (
+                            <button
+                              onClick={() => setCommentExpanded(!commentExpanded)}
+                              className="mt-1 text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                            >
+                              {commentExpanded ? 'Ver menos' : 'Ver más...'}
+                            </button>
+                          )}
+                      </div>
+
+                      <div className="flex items-center justify-end mt-4">
+                          <div className="flex items-center">
+                              {(() => {
+                                const userObj = getUserByIdentifier(Users, form.user);
+                                const avatarSrc = userObj?.referenciaIMG || userObj?.avatar || userObj?.profile_image || null;
+                                const displayName = userObj?.first_name || userObj?.username || String(form.user) || 'Usuario';
+                                const displayLastName = userObj?.last_name || String(form.user) || 'Usuario';
+                                return (
+                                  <>
+                                    {avatarSrc && (
+                                      <img className="object-cover w-10 h-10 mx-4 rounded-full" src={avatarSrc} alt="avatar"/>
+                                    )}
+                                    <a className="font-bold text-gray-700 cursor-pointer dark:text-gray-200" tabindex="0" role="link">{displayName} {displayLastName}</a>
+                                  </>
+                                );
+                              })()}
+                          </div>
+                      </div>
+                  </div>
+
+
+                  </>
+                )}
+                
+                {/* CONTENIDO ESTÁTICO */}
+                {modalModel === "contenidoEstatico" && (
+                  <div className="rounded-[10px] px-4 py-2 space-y-4">
+                    <div>
+                      <label className="block text-sm text-emerald-200 mb-1">
+                        Título
+                      </label>
+                      <input
+                        value={form.titulo || ""}
+                        onChange={(e) =>
+                          handleFormChange("titulo", e.target.value)
+                        }
+                        className="w-full px-3 py-2 bg-white/10 rounded outline-none text-white"
+                        placeholder="Ingresa el título"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm text-emerald-200 mb-1">
+                        Contenido
+                      </label>
+                      <textarea
+                        value={form.contenido || ""}
+                        onChange={(e) =>
+                          handleFormChange("contenido", e.target.value)
+                        }
+                        className="w-full px-3 py-2 min-h-40 max-h-60 bg-white/10 rounded outline-none focus:ring-2 focus:ring-emerald-400 text-white"
+                        placeholder="Ingresa el contenido"
+                      />
+                    </div>
+
+                    <div className="pt-4">
+                      <button
+                        onClick={() => { modalMode === "create" ? handleCreate() : handleUpdate() }}
+                        className="w-full text-white font-medium rounded-lg text-sm px-3 py-2 bg-emerald-600 hover:bg-emerald-800">
+                        {modalMode === "create" ? "Crear Contenido" : "Guardar Cambios"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* PROVEEDORES */}
+                {modalModel === "proveedores" && (
+
+                  <div>
+                    <div>
+                      {modalMode === 'view' ? (
+                        <>
+                          <div class='w-full px-4 py-3 bg-gray-400 dark:bg-gray-800 rounded-md shadow-md'>
+                              <div>
+                                  <h1 class="mt-2 text-lg font-semibold text-gray-800 dark:text-white">{form.nombre} </h1>
+                                  <p class="mt-2 text-sm text-gray-600 dark:text-gray-300"> {form.direccion} </p>
+                              </div>
+                              <div>
+                                <div class="mt-2 text-gray-700 dark:text-gray-200">
+                                    <span>Contacto:</span>
+                                    <div className="flex gap-1 items-center">
+                                      <a href={`malito:${form.correo}`} class="flex items-center gap-1 mx-2 text-blue-600 cursor-pointer dark:text-blue-400 hover:underline"  tabindex="0" role="link"> <Mail size={18}/> {form.correo} </a>
+                                      |
+                                      <a href={form.telefono || form.telefono2} class="flex items-center gap-1 mx-2 text-blue-600 cursor-pointer dark:text-blue-400 hover:underline" tabindex="0" role="link"> <Phone size={18}/> {form.telefono || form.telefono2} </a>
+                                    </div>
+
+                                </div>
+                              </div>
+                          </div>
+
+                        </>
+                      ) : (
+                        <>
+                          <div class='w-full px-4 py-3 bg-transparent dark:bg-gray-800'>
+                              <label className="block text-sm text-emerald-200 mb-1"> Nombre</label>
+                              <input value={form.nombre || ""} onChange={(e) => handleFormChange("nombre", e.target.value)} className="w-full px-3 py-1 bg-white/10 rounded outline-none text-white" placeholder="Ingresa el nombre"/>  
+
+                              <label className="block text-sm text-emerald-200 mb-1"> Teléfono</label>
+                              <input value={form.telefono || ""} onChange={(e) => handleFormChange("telefono", e.target.value)} className="w-full px-3 py-1 bg-white/10 rounded outline-none text-white" placeholder="Ingresa el teléfono"/>
+                            
+                              <label className="block text-sm text-emerald-200 mb-1"> Correo </label>
+                              <input value={form.correo || ""} onChange={(e) => handleFormChange("correo", e.target.value)} className="w-full px-3 py-1 bg-white/10 rounded outline-none text-white" placeholder="Ingresa el correo"/>
+                          
+                              <label className="block text-sm text-emerald-200 mb-1"> Dirección </label>
+                              <textarea value={form.direccion || ""} onChange={(e) => handleFormChange("direccion", e.target.value)} className="w-full min-h-10 max-h-23 px-3 py-2 bg-white/10 rounded outline-none focus:ring-2 focus:ring-emerald-400 text-white" placeholder="Ingresa la dirección"/>
+
+                            </div>
+                        </>
+                      )}
+                    </div>
+
+                    {modalMode !== 'view' && (
+                      <div>
+                        <button
+                          onClick={() => { modalMode === "create" ? handleCreate() : handleUpdate() }}
+                          className="w-full text-white font-medium rounded-lg text-sm px-3 py-2 bg-emerald-600 hover:bg-emerald-800">
+                          {modalMode === "create" ? "Crear Proveedor" : "Guardar Cambios"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+          
                 {/* CATEGORÍAS */}
                 {modalModel === "categorias" && (
-                  <div className="backdrop-blur-xl rounded-lg p-4 sm:p-6 shadow-2xl">
+                  <>
                     <label className="block text-sm text-emerald-200 mb-1">Nombre</label>
                     <input
                       value={form.nombre || ""}
                       onChange={(e) => handleFormChange("nombre", e.target.value)}
                       className="w-full px-3 py-2 bg-white/10 rounded outline-none text-white"
                     />
-                  </div>
-                )}
-
-                {/* PROVEEDORES */}
-                {modalModel === "proveedores" && (
-                  <div className="backdrop-blur-xl rounded-lg p-4 sm:p-6 shadow-2xl space-y-3">
+            
                     <div>
-                      <label className="block text-sm text-emerald-200 mb-1">Nombre</label>
-                      <input
-                        value={form.nombre || ""}
-                        onChange={(e) => handleFormChange("nombre", e.target.value)}
-                        className="w-full px-3 py-2 bg-white/10 rounded outline-none text-white"
-                      />
+                      <button
+                        onClick={() => { modalMode === "create" ? handleCreate() : handleUpdate() }}
+                        className="w-full mt-4 text-white font-medium rounded-lg text-sm px-3 py-2 bg-emerald-600 hover:bg-emerald-800">
+                        Crear categoria
+                      </button>
                     </div>
-                    <div>
-                      <label className="block text-sm text-emerald-200 mb-1">Teléfono</label>
-                      <input
-                        value={form.telefono || ""}
-                        onChange={(e) => handleFormChange("telefono", e.target.value)}
-                        className="w-full px-3 py-2 bg-white/10 rounded outline-none text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm text-emerald-200 mb-1">Correo</label>
-                      <input
-                        value={form.correo || ""}
-                        onChange={(e) => handleFormChange("correo", e.target.value)}
-                        className="w-full px-3 py-2 bg-white/10 rounded outline-none text-white"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* CONTENIDO ESTÁTICO */}
-                {modalModel === "contenidoEstatico" && (
-                  <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl space-y-2">
-                    <label className="block text-sm text-emerald-200">
-                      Título
-                    </label>
-                    <input
-                      value={form.titulo || ""}
-                      onChange={(e) =>
-                        handleFormChange("titulo", e.target.value)
-                      }
-                      className="w-full px-3 py-2 bg-white/10 rounded outline-none"
-                    />
-
-                    <label className="block text-sm text-emerald-200">
-                      Contenido
-                    </label>
-                    <textarea
-                      value={form.contenido || ""}
-                      onChange={(e) =>
-                        handleFormChange("contenido", e.target.value)
-                      }
-                      className="w-full px-3 py-2 bg-white/10 rounded outline-none"
-                    />
-                  </div>
-                )}
-
-                {/* COMENTARIOS */}
-                {modalModel === "comentarios" && (
-                  <div className="backdrop-blur-xl rounded-[10px] p-6 shadow-2xl space-y-2">
-                    <label className="block text-sm text-emerald-200">
-                      Usuario (id)
-                    </label>
-                    <input
-                      value={form.user || form.user_id || ""}
-                      onChange={(e) =>
-                        handleFormChange("user", e.target.value)
-                      }
-                      className="w-full px-3 py-2 bg-white/10 rounded outline-none"
-                    />
-
-                    <label className="block text-sm text-emerald-200">
-                      Comentario
-                    </label>
-                    <textarea
-                      value={form.comentario || ""}
-                      onChange={(e) =>
-                        handleFormChange("comentario", e.target.value)
-                      }
-                      className="w-full px-3 py-2 bg-white/10 rounded outline-none"
-                    />
-                  </div>
-                )}
-
-                {/* BOTÓN GENERICO PARA LOS MODALES (excepto imágenes que ya lo tiene) */}
-                {modalModel !== 'imagenesCarrusel' && (
-                  <div className="p-4">
-                    <button
-                      onClick={() => { modalMode === "create" ? handleCreate() : handleUpdate() }}
-                      disabled={modalMode === 'edit' && !hasFormChanged()}
-                      className={`w-full mt-2 text-white font-medium rounded-lg text-sm px-3 py-2 ${modalMode === 'edit' && !hasFormChanged() ? 'bg-gray-400 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-800'}`}>
-                      {modalMode === "create" ? "Crear222" : "Guardar Cambios222"}
-                    </button>
-                  </div>
-                )}
+                  </>
+            
+                )}    
 
               </div>
             </div>
