@@ -27,12 +27,8 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
     { name: "Pedidos", icon: <Truck size={18} />, component: <OrdersList /> },
     { name: "Ventas", icon: <ShoppingCartIcon size={18} />, component: <SalesList /> },
     { name: "Mensajes", icon: <MessageCircle size={18} />, component: <Messages /> },
-<<<<<<< HEAD
     { name: "Eventos", icon: <ActivityIcon size={18} />, component: <AuditsLog /> },
     { name: "Ajustes", icon: <Settings size={18} />, component: <SiteSettings /> },
-=======
-    { name: "Ajustes", icon: <Settings size={18} />, component: <div className="pt-10">Ajustes</div> },
->>>>>>> 48add28a69865f3d79d6af9c9573450916faae50
   ];
   
   // Recuperar menú activo al montar
@@ -79,11 +75,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
       {/* Sidebar */}
       <aside
-<<<<<<< HEAD
-        className={`bg-[#83917f7c] dark:bg-[#05052f8c] backdrop-blur-md dark:text-[#CEC19F] fixed inset-y-0 left-0 text-white w-64 p-4 transform lg:translate-x-0 transition-transform duration-300 z-40 ${
-=======
         className={`bg-[#adb6aa] dark:bg-gray-800 dark:text-[#CEC19F] fixed inset-y-0 left-0 text-white w-64 p-4 transform lg:translate-x-0 transition-transform duration-300 z-40 ${
->>>>>>> 48add28a69865f3d79d6af9c9573450916faae50
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
