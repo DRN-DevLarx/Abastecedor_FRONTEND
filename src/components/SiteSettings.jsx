@@ -120,15 +120,11 @@ function ModelsList() {
     })
   }
 
-
-
   const resolveUserSearchText = (userId) => {
     const u = Users.find(u => String(u.id) === String(userId))
     if (!u) return ''
     return `${u.username || ''} ${u.first_name || ''} ${u.last_name || ''}`.toLowerCase()
   }
-
-
 
   const openCreate = (model) => {
     setModalMode('create')
@@ -1323,7 +1319,7 @@ function ModelsList() {
                                     <div className="flex gap-1 items-center">
                                       <a href={`malito:${form.correo}`} class="flex items-center gap-1 mx-2 text-blue-600 cursor-pointer dark:text-blue-400 hover:underline"  tabindex="0" role="link"> <Mail size={18}/> {form.correo} </a>
                                       |
-                                      <a href={form.telefono || form.telefono2} class="flex items-center gap-1 mx-2 text-blue-600 cursor-pointer dark:text-blue-400 hover:underline" tabindex="0" role="link"> <Phone size={18}/> {form.telefono || form.telefono2} </a>
+                                      <a href={`tel:${form.telefono || form.telefono2}`} class="flex items-center gap-1 mx-2 text-blue-600 cursor-pointer dark:text-blue-400 hover:underline" tabindex="0" role="link"> <Phone size={18}/> {form.telefono || form.telefono2} </a>
                                     </div>
 
                                 </div>
