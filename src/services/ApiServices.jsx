@@ -85,21 +85,20 @@ async function PutData(endpoint, id, body) {
         });
 
         if (!response.ok) {
-            throw new Error('Error al actualizar (PUT) ' + endpoint);
+            throw new Error('Error al actualizar' + endpoint);
         }
 
         const data = await response.json();
         return data;
 
     } catch (error) {
-        console.error('Error al actualizar (PUT):', endpoint, error);
+        console.error('Error al actualizar:', endpoint, error);
         throw error;
     }
 }
 
 // PATCH
 async function PatchData(endpoint, id, body) {
-  console.log(body);
   
   try {
     const response = await fetch(`${API_URL}${endpoint}${id}/`, {
@@ -125,7 +124,6 @@ async function PatchData(endpoint, id, body) {
     throw error;
   }
 }
-
 
 // DELETE USER
 async function DeleteUserData(endpoint, id) {
