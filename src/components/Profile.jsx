@@ -1,7 +1,7 @@
 import Default_Image from "../assets/Default_Image.jpg";
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { X, ArrowLeft, Bell, BellOff, MoonIcon, Sun, LucideXCircle, LucideTrash, Trash, Edit, Save, ImageIcon, Upload, LucideSolarPanel } from "lucide-react";
+import { X, ArrowLeft, Bell, BellOff, MoonIcon, Sun, Trash, Edit, Save, ImageIcon, Upload } from "lucide-react";
 import { Login } from "../services/Token/AuthServices";
 import { GetData, PostData, PatchData, DeleteUserData, DeleteData } from "../services/ApiServices";
 import cloudDinaryServices from '../services/cloudDinaryServices';
@@ -11,10 +11,7 @@ import Swal from "sweetalert2";
 import Loader from "./Loader"
 import { useQueryClient } from "@tanstack/react-query";
 
-
 import Alert, { showAlert } from "./Alert";
-import Modal, { showModal } from "./Modal";
-import { ThemeContext } from "styled-components";
 
 function Profile() {
 
@@ -44,7 +41,6 @@ function Profile() {
   const [Address, setAddress] = useState("");
   const [Joined, setJoined] = useState("");
   
-
   const [NewRole, setNewRole] = useState();
   const [NewName, setNewName] = useState("");
   const [NewLastName, setNewLastName] = useState("");
@@ -56,12 +52,10 @@ function Profile() {
   const [NewUserImage, setNewUserImage] = useState("");
   const [NewNotificationsOn, setNewNotificationsOn] = useState(false);
 
-
-  const DefaultImage = Default_Image;
-  
+  const DefaultImage = Default_Image;  
 
   const [UserImages, setUserImages] = useState([])
-  
+
   const [UserImage, setUserImage] = useState();
   const [ImagePreview, setImagePreview] = useState()
   const fileInputRef = useRef(null);
@@ -140,6 +134,7 @@ function Profile() {
       const UsersImagesData = await GetData("imagenesUsuarios/");
 
       const UserData = UsersData.find(FindUser => FindUser.id == IdUserCookie)
+      
       const UserImagesData = UsersImagesData.filter(FindUser => FindUser.user == IdUserCookie)
 
       if (UserImagesData) {
@@ -329,22 +324,31 @@ function Profile() {
 
     } else {    
       setShowLoader(true)
-      const responseDeleteUser = await DeleteUserData("eliminarUsuario/", IdUser)
-            
-      setShowLoader(false)
+      console.log(IdUser);
+      console.log(CurrentIdUser);
+      
+      const responseDeleteUser = await DeleteData("users/", IdUser)
 
-      if(responseDeleteUser === 200) {
+      setShowLoader(false)
+      console.log(responseDeleteUser);
+      
+
+      if(responseDeleteUser.status === 204) {
 
         showAlert("success", "ÉXITO", "La cuenta se ha eliminado con éxito");
 
-        setTimeout(() => {
-          navigate("/IniciarSesion")
-        }, 3000);
+        if(IdUser == CurrentIdUser) {
+          setTimeout(() => {
+            navigate("/IniciarSesion")
+          }, 3000);
+        } else {
+          setTimeout(() => {
+            navigate(-1)
+          }, 3000);
+        }
       }
       
     }
-
-
   }
 
   const EditMode = () => {
@@ -950,7 +954,6 @@ function Profile() {
       
 
       <Alert />
-      <Modal /> 
 
         {/* Header */}
         <Link to={-1} className="flex items-center mb-6 gap-1 hover:scale-101 ">
@@ -1021,7 +1024,7 @@ function Profile() {
                               <img
                                 src={ImagePreview || UserImage || DefaultImage}
                                 alt="Imagen de usuario"
-                                className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-contain cursor-pointer"
+                                className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-cover cursor-pointer"
                                 onClick={() => Mode === "edit" && setShowUploadedImages(true)}
                               />
                             </div>
@@ -1036,14 +1039,17 @@ function Profile() {
                             <span className="text-emerald-200">Se unió el</span><p>{Joined? new Date(Joined).toLocaleDateString("es-ES", 
                               {
                                 day: "2-digit",
-                                month: "numeric",
+                                month: "long",
                                 year: "numeric",
                               })
                               : ""}
 
                             </p></div>
 
-                          <div className="col-span-2" ><span className="text-emerald-200">Dirección</span><p>{Address || "No hay dirección registrada"}</p></div>
+                          <div className="col-span-2" >
+                            <span className="text-emerald-200">Dirección</span>
+                            <p className="break-words max-h-20 overflow-y-aut " >{Address || "No hay dirección registrada"}</p>
+                          </div>
               
                           {/* Acciones */}
                           {(IdUser == CurrentIdUser || ViewUserAdmin) && (
@@ -1134,7 +1140,7 @@ function Profile() {
                               <img
                                 src={ImagePreview || UserImage || DefaultImage}
                                 alt="Imagen de usuario"
-                                className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-contain cursor-pointer"
+                                className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-cover cursor-pointer"
                                 onClick={() => Mode === "edit" && setShowUploadedImages(true)}
                               />
 
@@ -1236,7 +1242,7 @@ function Profile() {
                       <img
                         src={ImagePreview || UserImage || DefaultImage}
                         alt="Imagen de usuario"
-                        className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-contain cursor-pointer"
+                        className="mx-auto w-32 h-32 rounded-full border-4 border-emerald-400 object-cover cursor-pointer"
                         onClick={() => Mode === "edit" && setShowUploadedImages(true)}
                       />
 
@@ -1435,7 +1441,7 @@ function Profile() {
                           <img
                             src={IMGS.imagen}
                             onClick={() => SelectImage(IMGS.imagen)}
-                            className="w-full h-40 object-contain cursor-pointer"
+                            className="w-full h-40 object-cover cursor-pointer"
                             alt=""
                           />
 
