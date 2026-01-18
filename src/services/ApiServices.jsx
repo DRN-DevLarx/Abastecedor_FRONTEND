@@ -72,6 +72,38 @@ async function PostData(endpoint, body) {
     }
 }
 
+async function PostData2(endpoint, body, access_token = null) {
+  try {
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+
+    if (access_token) {
+      headers['Authorization'] = `Bearer ${access_token}`;
+    }
+
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      credentials: 'include',
+    });
+
+    const data = await response.json();
+
+    return {
+      status: response.status,
+      data,
+    };
+  } catch (error) {
+    console.error('Error:', endpoint, error);
+    throw error;
+  }
+}
+
+export default PostData;
+
+
 // PUT
 async function PutData(endpoint, id, body) {
       
@@ -177,4 +209,4 @@ async function DeleteData(endpoint, id) {
   }
 }
 
-export { GetData, GetData2, PostData, PutData, PatchData, DeleteUserData, DeleteData };
+export { GetData, GetData2, PostData, PostData2, PutData, PatchData, DeleteUserData, DeleteData };

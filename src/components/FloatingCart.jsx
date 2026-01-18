@@ -1,11 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, ChevronLeft, ChevronRight, Star, ArrowLeft, ShoppingCart, HeartPlus, HeartPlusIcon, X, Trash2, Move } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Alert, { showAlert } from './Alert';
+import { getCookie } from "../services/Token/sessionManager";
+import { GetData2 } from "../services/ApiServices";
 
 const MOVE_THRESHOLD = 5; // px
 
 // Componente del Carrito Flotante Arrastrable con Snap
-export const FloatingCart = ({ items = [], onRemoveItem }) => {
+export const FloatingCart = () => {
+
+
+
+
+  const [itemsCount, setItemsCount] = useState(0);
+
+  /* ================== FETCH CARRITO ================== */
+  const fetchCart = async () => {
+    try {
+      const access_token = getCookie("access_token");
+      if (!access_token) return;
+
+      const response = await GetData2("carritoActivo/", access_token);      
+
+      setItemsCount(response.items.length);
+    } catch (error) {
+      console.error("Error al obtener carrito", error);
+      showAlert("warning", "Carrito", "No se pudo cargar el carrito");
+    }
+  };
+
+  /* ================== ON MOUNT ================== */
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  /* ================== ESCUCHAR ACTUALIZACIONES ================== */
+  useEffect(() => {
+    const handler = () => fetchCart();
+    window.addEventListener("cart-updated", handler);
+    return () => window.removeEventListener("cart-updated", handler);
+  }, []);
+
+
+
+
+
   const navigate = useNavigate()
   const [side, setSide] = useState('right'); // 'left' o 'right'
   const [yPosition, setYPosition] = useState(50); // Porcentaje vertical (0-100)
@@ -19,12 +59,29 @@ export const FloatingCart = ({ items = [], onRemoveItem }) => {
     height: window.innerHeight,
   });
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  // const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  // const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+  const getCartCount = async () => {
+    const access_token = getCookie("access_token");
+    if (!access_token) return 0;
+
+    try {
+      const data = await GetData2("carritoActivo/", access_token);
+        console.log(data);
+
+        return data.items.reduce((sum, item) => sum + item.cantidad, 0);
+    } catch (err) {
+      console.error("Error obteniendo carrito", err);
+      return 0;
+    }
+  };
+
 
   const getActualPosition = () => {
     const padding = 20;
     const buttonSize = 30;
+    
     
     // AQUÍ: Cambia estos valores para limitar verticalmente
     const minY = 0;      // Mínimo desde arriba (aumenta para más margen superior)
@@ -137,6 +194,7 @@ export const FloatingCart = ({ items = [], onRemoveItem }) => {
 
   return (
     <>
+    <Alert/>
       {/* Botón del carrito flotante arrastrable */}
       <div
         style={{
@@ -163,9 +221,9 @@ export const FloatingCart = ({ items = [], onRemoveItem }) => {
         >
           <ShoppingCart size={24} />
 
-          {totalItems > 0 && (
+          {itemsCount > 0 && (
             <span className="absolute -top-2 -right-2 bg-red-500 text-xs w-6 h-6 rounded-full flex items-center justify-center">
-              {totalItems}
+              {itemsCount}
             </span>
           )}
 

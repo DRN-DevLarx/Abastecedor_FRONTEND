@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Heart, ChevronLeft, ChevronRight, Star, ArrowLeft, ShoppingCart, HeartPlus, HeartPlusIcon, X, Trash2, Move } from 'lucide-react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 
-import { GetData, GetData2 } from "../services/ApiServices";
+import { GetData, GetData2, PostData2 } from "../services/ApiServices";
 import { getCookie } from "../services/Token/sessionManager";
+
 import ProductImageSlider from "./ProductImageSlider";
 
 import { FloatingCart } from "./FloatingCart"
@@ -18,6 +19,7 @@ const ProductDetail = () => {
 
     const [ProductInCart, setProductInCart] = useState(0);
     const [ProductMainImage, setProductMainImage] = useState(); 
+    const [ProductCategory, setProductCategory] = useState(""); 
     const [ProductImages, setProductImages] = useState(); 
     const [ProductCode, setProductCode] = useState(""); 
     const [ProductQualification, setProductQualification] = useState(""); 
@@ -31,10 +33,11 @@ const ProductDetail = () => {
         try {
             const ProductData = await GetData2(`productos/${productId}/`, access_token);
             const ProductImages = await GetData(`imagenesProducto/${productId}/`)
-            
+            const ProductCategory = await GetData(`categorias/${productId}/`)
             const urls = ProductImages.map(img => img.imagen);
 
             setProductImages(urls)
+            setProductCategory(ProductCategory.nombre);
             setProductCode(ProductData.codigo);
             setProductMainImage(ProductData.referenciaIMG);
             setProductName(ProductData.nombre);
@@ -59,6 +62,52 @@ const ProductDetail = () => {
       fetchData(id, access_token);
     }, [id, navigate]);
 
+    const addToCart = async () => {
+      try {
+        const access_token = getCookie("access_token");
+
+        const res = await PostData2("agregarCartItem/",
+          {
+            producto_id: id,
+            cantidad: quantity,
+          },
+          access_token
+        );
+
+        // 🔥 Actualizar floating cart con lo que devuelve backend
+        if (res?.item) {
+          setCartItems((prev) => {
+            const exists = prev.find(i => i.id === res.item.id);
+
+            if (exists) {
+              return prev.map(i =>
+                i.id === res.item.id
+                  ? { ...i, quantity: res.item.cantidad }
+                  : i
+              );
+            }
+
+            return [...prev, {
+              id: res.item.id,
+              name: ProductName,
+              price: ProductPrice,
+              image: ProductMainImage,
+              quantity: res.item.cantidad
+            }];
+          });
+        }
+      } catch (error) {
+        console.error("Error agregando al carrito", error);
+      }
+    };
+
+
+
+
+
+
+
+    
     // Función para añadir al carrito con animación
     const addToCartWithAnimation = (e) => {
       const button = e.currentTarget;
@@ -103,23 +152,7 @@ const ProductDetail = () => {
         flyingItem.remove();
         
         // Agregar producto al carrito
-        setCartItems(prev => {
-          const existingItem = prev.find(item => item.id === id);
-          if (existingItem) {
-            return prev.map(item =>
-              item.id === id
-                ? { ...item, quantity: item.quantity + quantity }
-                : item
-            );
-          }
-          return [...prev, {
-            id: id,
-            name: ProductName,
-            price: ProductPrice,
-            image: ProductMainImage,
-            quantity: quantity
-          }];
-        });
+        addToCart();
 
         // Animación de pulso en el carrito
         const button = cartButton.querySelector('button');
@@ -228,8 +261,8 @@ const ProductDetail = () => {
                       </h1>
 
                       <div className="flex items-center gap-4 text-md text-gray-600 dark:text-gray-500">
-                        <span> Marca <span className="text-[#21a461]"> {ProductStock} </span></span>
-                        <span> SKU {ProductCode}</span>
+                        <span> Categoría <span className="text-[#21a461]"> {ProductCategory} </span></span>
+                        <span> Código {ProductCode}</span>
                       </div>
                   </div>
 
