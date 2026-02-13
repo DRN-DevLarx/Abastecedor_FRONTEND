@@ -526,10 +526,11 @@ function UsersList() {
                     </td>
 
                     <td className="px-2 py-2">
-                        {info.telefono ? (
+                        
+                        {info?.telefono ? (
                         <div className="flex items-center gap-1">
                             <PhoneIcon size={18}/>
-                            <a href={`${info.telefono}`} className="text-blue-500 underline pointer text-xs"> {info?.telefono}</a>
+                            <a href={`${info?.telefono}`} className="text-blue-500 underline pointer text-xs"> {info?.telefono}</a>
                         </div>
                         ) : (
                         <div className="flex items-center gap-1">
