@@ -37,6 +37,7 @@ function Profile() {
   const [LastName, setLastName] = useState("");
   const [UserName, setUserName] = useState("");
   const [Email, setEmail] = useState("");
+  const [IdUserInfo, setIdUserInfo] = useState();
   const [Phone, setPhone] = useState("");
   const [Address, setAddress] = useState("");
   const [Joined, setJoined] = useState("");
@@ -165,6 +166,7 @@ function Profile() {
       const UserInfo = AditionalInfo.find(UInfo => UInfo.user == IdUserCookie)
             
       if (UserInfo) {
+        setIdUserInfo(UserInfo.id)
         setPhone(UserInfo.telefono);
         setAddress(UserInfo.direccion);
         setUserImage(UserInfo.referenciaIMG);
@@ -846,7 +848,7 @@ function Profile() {
         showAlert("error", "ERROR", "Ocurrió un error al subir la imagen.");
 
       } else {
-        const responseUpdateInfoUser = await PatchData("informacionUsuarios/", IdUser, {
+        const responseUpdateInfoUser = await PatchData("informacionUsuarios/", IdUserInfo, {
           referenciaIMG: uploadedUrl,
         });
 
@@ -878,7 +880,7 @@ function Profile() {
 
   const SelectImage = async (Image) => {
     
-    const responseUpdateInfoUser = await PatchData("informacionUsuarios/", IdUser, {
+    const responseUpdateInfoUser = await PatchData("informacionUsuarios/", IdUserInfo, {
       referenciaIMG: Image,
     });
 
@@ -894,7 +896,7 @@ function Profile() {
   
   const DeleteUserImage = async () => {
 
-    const responseUpdateInfoUser = await PatchData("informacionUsuarios/", IdUser, {
+    const responseUpdateInfoUser = await PatchData("informacionUsuarios/", IdUserInfo, {
       referenciaIMG: DefaultImage,
     });
 
