@@ -147,15 +147,7 @@ function LoginForm () {
               Volver
           </Link>
 
-          <button type="button" onClick={e => LogIn("DRN-DevLarx", "D6475941@q")} 
-          className="text-white flex items-center focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-2 py-2.5 text-center bg-[#38664e] hover:bg-[#24b469] hover:text-black focus:ring-[#38664e]">
-            Admin
-          </button>
-          <button type="button" onClick={e => LogIn("JosVenegas", "Jos202$")} 
-          className="text-white flex items-center focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-2 py-2.5 text-center bg-[#38664e] hover:bg-[#24b469] hover:text-black focus:ring-[#38664e]">
-            Cliente
-          </button>
-          <button type="button" onClick={e => LogIn()} 
+          <button type="button" onClick={e => LogIn(userName, password)} 
           className="text-white flex items-center focus:ring-4 focus:outline-none font-medium rounded-lg text-sm px-2 py-2.5 text-center bg-[#38664e] hover:bg-[#24b469] hover:text-black focus:ring-[#38664e]">
             Iniciar sesión
           </button>

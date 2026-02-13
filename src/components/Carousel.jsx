@@ -21,6 +21,8 @@ function Carousel3D() {
     const load = async () => {
       try {
         const data = await GetData('imagenesCarrusel/')
+        console.log(data);
+        
         if (!mounted) return
         if (Array.isArray(data) && data.length) {
           // solo imágenes con estado 'activa', map a urls

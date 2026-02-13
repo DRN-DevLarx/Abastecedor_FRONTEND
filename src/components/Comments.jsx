@@ -9,19 +9,19 @@ const comments = () => {
     const [UserComment, setUserComment] = useState("")
     const [CommentDate, setCommentDate] = useState()
     
-    useEffect(() => {
-      const fetch = async () => {
-          const UsersData = await GetData("users/")
+    // useEffect(() => {
+    //   const fetch = async () => {
+    //       const UsersData = await GetData("users/")
     
-          if (UsersData) {
-              console.log(UsersData);
+    //       if (UsersData) {
+    //           console.log(UsersData);
               
-          }
-      }
+    //       }
+    //   }
     
-      fetch();
+    //   fetch();
     
-    }, []);
+    // }, []);
 
 
     const cardsData = [

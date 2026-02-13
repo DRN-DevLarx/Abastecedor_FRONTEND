@@ -31,14 +31,14 @@ export async function Login(endpoint, body) {
     }
 }
 
-export function AutenticatedUserData() {
+export function AutenticatedUserData(enabled = true) {
   return useQuery({
     queryKey: ["user"],
     queryFn: VerifyAccessToken,
-    staleTime: 1000 * 60 * 5, // 5 min en cache
-    retry: false, // no reintentar si no hay sesión
-    refetchOnMount: "always", // se asegura de pedir de nuevo al montarse
-
+    staleTime: 1000 * 60 * 5,
+    retry: false,
+    refetchOnMount: "always",
+    enabled: enabled, // 🔥 clave
   });
 }
 

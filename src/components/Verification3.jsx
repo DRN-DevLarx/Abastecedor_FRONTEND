@@ -27,37 +27,37 @@ function Verification3() {
     };
 
     useEffect(() => {
-        // Fetch inicial de datos
+        // Fetch inicial de datos (SIN CAMBIOS)
         const fetchData = async () => {
             const TemporaryDataGet = await GetData('registroTemporal/');
 
             if (TemporaryDataGet) {
-                const item = TemporaryDataGet.find((item) => item.email === emailForVerification);
-                
-                if (item) {
-                    setTemporaryData(item);
-                }
+                const item = TemporaryDataGet.find(
+                    (item) => item.email === emailForVerification
+                );
+                if (item) setTemporaryData(item);
             }
         };
 
         fetchData();
+    }, [emailForVerification]);
 
-        // Manejo del cooldown
-        if (cooldown > 0) {
-            const id = setInterval(() => {
-                setCooldown((prev) => prev - 1);
-            }, 1000);
+    //useEffect SOLO para el cooldown
+    useEffect(() => {
+        if (cooldown <= 0) return;
 
-            setIntervalId(id);
+        const id = setInterval(() => {
+            setCooldown(prev => {
+                if (prev <= 1) {
+                    clearInterval(id);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
 
-            // limpiar intervalo cuando cooldown cambie o se desmonte
-            return () => clearInterval(id);
-        } else {
-            clearInterval(intervalId);
-            setIntervalId(null);
-        }
-        
-    }, [cooldown, emailForVerification]); 
+        return () => clearInterval(id);
+    }, [cooldown]);
 
     // Validar código de verificación
     async function ValidateCode() {
@@ -224,7 +224,6 @@ function Verification3() {
             });
         }
     }
-
 
     return (
         <div className="bg-[#adb6aaa8] dark:bg-[#171731] flex items-center justify-center min-h-[100vh] overflow-auto">

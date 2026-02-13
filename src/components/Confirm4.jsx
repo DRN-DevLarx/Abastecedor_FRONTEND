@@ -18,7 +18,7 @@ function Confirm4() {
 
     const [Validation1, setValidation1] = useState("❌")
     const [Validation2, setValidation2] = useState("❌")
-    const [Validation3, setValidation3] = useState("❌")
+    // const [Validation3, setValidation3] = useState("❌")
     const [Validation4, setValidation4] = useState("❌")    
 
     const [ShowModal, setShowModal] = useState(false)
@@ -62,15 +62,15 @@ function Confirm4() {
         setValidation2(validCase ? "✅" : "❌");
 
         // 3️⃣ Al menos un símbolo
-        const validSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(value);
-        setValidation3(validSymbol ? "✅" : "❌");
+        // const validSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+        // setValidation3(validSymbol ? "✅" : "❌");
 
         // 4️⃣ Al menos un número
         const validNumber = /[0-9]/.test(value);
         setValidation4(validNumber ? "✅" : "❌");
 
         // Mensaje si la contraseña es insegura
-        const isSecure = validLength && validCase && validSymbol && validNumber;
+        const isSecure = validLength && validCase && validNumber;
         setMessage(isSecure ? "" : "La contraseña es insegura ❌");
     };
 
@@ -80,7 +80,7 @@ function Confirm4() {
 
         if (ConfirmValue !== Password) {
             setMessage2("Las contraseñas no coinciden ❌");
-        } else if ([Validation1, Validation2, Validation3, Validation4].every(v => v === "✅")) {
+        } else if ([Validation1, Validation2, Validation4].every(v => v === "✅")) {
             setMessage(""); // Limpiar mensaje si todo está bien
             setMessage2(""); // Limpiar mensaje si todo está bien
         } 
@@ -296,7 +296,7 @@ function Confirm4() {
                             <ul className="space-y-1">
                                 <li className="flex items-center">{Validation1} Al menos 6 carácteres.</li>
                                 <li className="flex items-center">{Validation2} Una mayúscula y minúscula.</li>
-                                <li className="flex items-center">{Validation3} Al menos un símbolo.</li>
+                                {/* <li className="flex items-center">{Validation3} Al menos un símbolo.</li> */}
                                 <li className="flex items-center">{Validation4} Al menos un número.</li>
                             </ul>
                         </div>
