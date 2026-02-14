@@ -38,52 +38,77 @@ function Statistics() {
 
   const [UserTotal, setUserTotal] = useState(0)
   const [ProductsTotal, setProductsTotal] = useState(0)
+  const [OrdersTotal, setOrdersTotal] = useState(0)
+  const [SalesTotal, setSalesTotal] = useState(0)
 
   useEffect(() => {
 
-        const fetchData = async () => {
-          const UsersData = await GetData("users/")
-          const ProductsData = await GetData("productosAdmin/")
+    const fetchData = async () => {
+      const UsersData = await GetData("users/")
+      const ProductsData = await GetData("productosAdmin/")
+      const OrdersData = await GetData("pedidos/")
 
-          if (UsersData) {
+      if (UsersData && ProductsData && OrdersData) {
 
-            setUserTotal(UsersData.length)
-            setProductsTotal(ProductsData.length)
-          }
-        }
+        const totalStock = ProductsData.reduce((acc, producto) => acc + producto.stock, 0)
 
-        fetchData() 
-  }), []
+        setUserTotal(UsersData.length)
+        setProductsTotal(totalStock)
+        setOrdersTotal(OrdersData.length)
+
+        const pedidosValidos = OrdersData.filter(
+          order => order.estado === "entregado" && order.pagado === true
+        )
+
+        const totalVentas = pedidosValidos.reduce((acc, order) => {
+
+          const totalPedido = order.detallepedido_set.reduce(
+            (subAcc, item) =>
+              subAcc + (Number(item.precio_unitario) * item.cantidad),
+            0
+          )
+
+          return acc + totalPedido
+
+        }, 0)
+
+        setSalesTotal(totalVentas)        
+      }
+    }
+
+    fetchData()
+
+  }, [])
+
 
   return (
     <div>
     {/* Content */}
-      <main className="flex-1 p-6 overflow-y-auto z-20">
-        <br />
-        <h2 className="text-black dark:text-white text-2xl font-bold mt-2 mb-4">Estadisticas generales</h2>
+      <main className="bg-[#adb6aac2] dark:bg-[#171731] dark:text-[#CEC19F] flex-1 min-h-[100vh] px-8 pt-0 overflow-y-auto z-20">
+        <h2 className="text-black dark:text-white text-2xl font-bold mt-1 pl-4 mb-4">Estadisticas generales</h2>
 
         {/* Stats Cards */} 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
 
           <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
             <p className="text-black font-bold dark:text-gray-400">Total de usuarios</p>
-            <h2 className="text-2xl font-bold text-white">{UserTotal}</h2>
+            <h2 className="text-2xl font-bold text-black dark:text-white">{UserTotal}</h2>
           </div>
 
           <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
-            <p className="text-black font-bold dark:text-gray-400">Total de productos</p>
-            <h2 className="text-2xl font-bold text-white">{ProductsTotal}</h2>
+            <p className="text-black font-bold dark:text-gray-400">Productos en stock</p>
+            <h2 className="text-2xl font-bold text-black dark:text-white">{ProductsTotal}</h2>
           </div>
 
           <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
             <p className="text-black font-bold dark:text-gray-400">Total de pedidos</p>
-            <h2 className="text-2xl font-bold text-white">230</h2>
+            <h2 className="text-2xl font-bold text-black dark:text-white">{OrdersTotal}</h2>
             <span className="text-green-400 text-sm">+0.43%</span>
           </div>
           
           <div className="hover:scale-110 bg-transparent hover:bg-[#adb6aa] dark:hover:bg-[#282852a8] shadow-md shadow-[#171731] dark:shadow-[#adb6aa] p-4 rounded-xl">
             <p className="text-black font-bold dark:text-gray-400">Total de ventas</p>
-            <h2 className="text-2xl font-bold text-white">$45.2K</h2>
+            <h2 className="text-2xl font-bold text-black dark:text-white">₡{SalesTotal}</h2>
             <span className="text-green-400 text-sm">+4.53%</span>
           </div>
         </div>
